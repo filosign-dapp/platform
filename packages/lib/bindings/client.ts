@@ -10,6 +10,7 @@ import {
   type Transport,
   type WalletClient,
 } from "viem";
+import { filecoinCalibration } from "viem/chains";
 import { getContracts } from "@filosign/contracts";
 import {
   deriveEncryptionMaterial,
@@ -23,6 +24,7 @@ import {
 type Wallet = WalletClient<Transport, Chain, Account>;
 
 const info = `Replace with relevant shit`; // temporary, todo replace
+const primaryChain = filecoinCalibration;
 
 export class FilosignClient {
   private wallet: Wallet;
@@ -43,6 +45,10 @@ export class FilosignClient {
 
   async initialize() {
     this.version = await this.contracts.FSManager.read.version();
+
+    if (primaryChain.id !== this.wallet.chain.id) {
+      await this.wallet.switchChain({ id: primaryChain.id });
+    }
   }
 
   get address() {
