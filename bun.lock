@@ -16,9 +16,9 @@
     "packages/lib": {
       "name": "filosign-sdk",
       "dependencies": {
+        "@filosign/contracts": "https://github.com/filosign-dapp/contracts.git#cee6354",
         "filosign-crypto-utils": "^0.2.10",
         "hono": "^4.9.8",
-        "@filosign/contracts": "https://github.com/filosign-dapp/contracts.git#2f4ca59",
         "viem": "^2.37.6",
       },
     },
@@ -26,7 +26,7 @@
   "packages": {
     "@adraffy/ens-normalize": ["@adraffy/ens-normalize@1.11.1", "", {}, "sha512-nhCBV3quEgesuf7c7KYfperqSS14T8bYuvJ8PcLJp6znkZpFc0AuW4qBtr8eKVyPPe/8RSr7sglCWPU5eaxwKQ=="],
 
-    "@filosign/contracts": ["@filosign/contracts@github:filosign-dapp/contracts#2f4ca59", { "dependencies": { "multiformats": "^13.4.1", "viem": "^2.37.5" } }, "filosign-dapp-contracts-2f4ca59"],
+    "@filosign/contracts": ["@filosign/contracts@github:filosign-dapp/contracts#cee6354", { "dependencies": { "multiformats": "^13.4.1", "viem": "^2.37.5" } }, "filosign-dapp-contracts-cee6354"],
 
     "@noble/ciphers": ["@noble/ciphers@1.3.0", "", {}, "sha512-2I0gnIVPtfnMw9ee9h1dJG7tp81+8Ob3OJb3Mv37rx5L40/b0i7djjCVvGOVqc9AEIQyvyu1i6ypKdFw8R8gQw=="],
 
