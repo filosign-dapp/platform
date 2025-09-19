@@ -16,8 +16,8 @@
     "packages/lib": {
       "name": "filosign-sdk",
       "dependencies": {
-        "@filosign/contracts": "https://github.com/filosign-dapp/contracts.git#7f651b3",
-        "filosign-crypto-utils": "^0.2.10",
+        "@filosign/contracts": "https://github.com/filosign-dapp/contracts.git#24a7ff5",
+        "filosign-crypto-utils": "^0.2.11",
         "hono": "^4.9.8",
         "viem": "^2.37.6",
       },
@@ -26,7 +26,7 @@
   "packages": {
     "@adraffy/ens-normalize": ["@adraffy/ens-normalize@1.11.1", "", {}, "sha512-nhCBV3quEgesuf7c7KYfperqSS14T8bYuvJ8PcLJp6znkZpFc0AuW4qBtr8eKVyPPe/8RSr7sglCWPU5eaxwKQ=="],
 
-    "@filosign/contracts": ["@filosign/contracts@github:filosign-dapp/contracts#7f651b3", { "dependencies": { "multiformats": "^13.4.1", "viem": "^2.37.5" } }, "filosign-dapp-contracts-7f651b3"],
+    "@filosign/contracts": ["@filosign/contracts@github:filosign-dapp/contracts#24a7ff5", { "dependencies": { "multiformats": "^13.4.1", "viem": "^2.37.5" } }, "filosign-dapp-contracts-24a7ff5"],
 
     "@noble/ciphers": ["@noble/ciphers@1.3.0", "", {}, "sha512-2I0gnIVPtfnMw9ee9h1dJG7tp81+8Ob3OJb3Mv37rx5L40/b0i7djjCVvGOVqc9AEIQyvyu1i6ypKdFw8R8gQw=="],
 
@@ -54,7 +54,7 @@
 
     "eventemitter3": ["eventemitter3@5.0.1", "", {}, "sha512-GWkBvjiSZK87ELrYOSESUYeVIc9mvLLf/nXalMOS5dYrgZq9o5OVkbZAVM06CVxYsCwH9BDZFPlQTlPA1j4ahA=="],
 
-    "filosign-crypto-utils": ["filosign-crypto-utils@0.2.10", "", {}, "sha512-arh3z7B8PKLc+NDhfaTeqBEJfdVs1rZEPGCfLfMNrG0i9WjlARJYc/vBDTM/QvknPwoDKhK/PUqeSygClxM2gw=="],
+    "filosign-crypto-utils": ["filosign-crypto-utils@0.2.11", "", {}, "sha512-fZMBFvFpnfgfwG3awDNlvrp3d/JwriQCuLAhZU/GWy0SgNL5KyayE/1XKoxVTXQU4yA20V+3HpugLKGGLDTnaQ=="],
 
     "filosign-sdk": ["filosign-sdk@workspace:packages/lib"],
 
