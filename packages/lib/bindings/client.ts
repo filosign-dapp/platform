@@ -17,6 +17,7 @@ import {
   generateRegisterChallenge,
   generateSalts,
   regenerateEncryptionKey,
+  toB64,
 } from "filosign-crypto-utils";
 
 type Wallet = WalletClient<Transport, Chain, Account>;
@@ -27,6 +28,7 @@ export class FilosignClient {
   private wallet: Wallet;
   private publicClient: PublicClient;
   private contracts: ReturnType<typeof getContracts<Wallet>>;
+  private encryptionKey: Uint8Array | null = null;
   version = 1;
 
   constructor(wallet: Wallet) {
@@ -107,7 +109,59 @@ export class FilosignClient {
       encSeed,
       info
     );
+    this.encryptionKey = Uint8Array.from(encryptionKey);
   }
 
-  async login() {}
+  async login(pin: string) {
+    if (!(await this.isRegistered())) {
+      throw new Error("Address is not registered");
+    }
+
+    const pinCommitment = keccak256(
+      encodePacked(["string", "string"], [toB64(pin), pin])
+    );
+
+    const [
+      stored_salt_auth,
+      stored_salt_wrap,
+      stored_salt_pin,
+      stored_nonce,
+      stored_seed,
+      stored_commitment_pin,
+    ] = await this.contracts.FSKeyRegistry.read.keygenData([this.address]);
+
+    if (stored_commitment_pin !== pinCommitment) {
+      throw new Error("Invalid PIN");
+    }
+
+    const stored = {
+      salt_auth: toB64(stored_salt_auth),
+      salt_wrap: toB64(stored_salt_wrap),
+      salt_pin: toB64(stored_salt_pin),
+      nonce: toB64(stored_nonce),
+      seed: toB64(stored_seed),
+    };
+
+    const { challenge } = generateRegisterChallenge(
+      this.address,
+      this.version.toString(),
+      stored.nonce
+    );
+
+    const regenerated_signature = await this.wallet.signMessage({
+      message: challenge,
+    });
+
+    const { encryptionKey } = regenerateEncryptionKey(
+      regenerated_signature,
+      pin,
+      stored.salt_pin,
+      stored.salt_auth,
+      stored.salt_wrap,
+      stored.seed,
+      "test"
+    );
+
+    this.encryptionKey = Uint8Array.from(encryptionKey);
+  }
 }
