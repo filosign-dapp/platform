@@ -1,0 +1,9 @@
+{
+    "name": "filosign-sdk",
+    "dependencies": {
+        "@filosign/contracts": "https://github.com/filosign-dapp/contracts.git#2f4ca59",
+        "filosign-crypto-utils": "^0.2.10",
+        "hono": "^4.9.8",
+        "viem": "^2.37.6"
+    }
+}
