@@ -4,6 +4,7 @@ import {
   keccak256,
   toHex,
   type Account,
+  type Address,
   type Chain,
   type Hash,
   type PublicClient,
@@ -13,10 +14,12 @@ import {
 import { filecoinCalibration } from "viem/chains";
 import { getContracts } from "@filosign/contracts";
 import {
+  createSharedKey,
   deriveEncryptionMaterial,
   generateNonce,
   generateRegisterChallenge,
   generateSalts,
+  getPublicKeyFromRegenerated,
   regenerateEncryptionKey,
   toB64,
 } from "filosign-crypto-utils";
@@ -60,6 +63,19 @@ export class FilosignClient {
     return await this.publicClient.waitForTransactionReceipt({ hash });
   }
 
+  private async deriveRawAesKey(raw: Uint8Array) {
+    if (!(raw instanceof Uint8Array) || raw.length !== 32) {
+      throw new Error("raw must be Uint8Array(32)");
+    }
+    return crypto.subtle.importKey(
+      "raw",
+      raw,
+      { name: "AES-GCM", length: 256 },
+      false, // non-extractable means cant export raw bytes
+      ["encrypt", "decrypt"]
+    );
+  }
+
   async isRegistered() {
     return await this.contracts.FSKeyRegistry.read.isRegistered([this.address]);
   }
@@ -93,6 +109,16 @@ export class FilosignClient {
       encodePacked(["string", "string"], [salts.pinSalt, pin])
     );
 
+    const { publicKey } = getPublicKeyFromRegenerated(
+      signature,
+      pin,
+      salts.pinSalt,
+      salts.authSalt,
+      salts.wrapperSalt,
+      encSeed,
+      info
+    );
+
     await this.tx(
       this.contracts.FSKeyRegistry.write.registerKeygenData([
         {
@@ -103,6 +129,7 @@ export class FilosignClient {
           seed: `0x${toHex(encSeed)}`,
           commitment_pin: pinCommitment,
         },
+        `0x${toHex(publicKey)}`,
       ])
     );
 
@@ -165,9 +192,62 @@ export class FilosignClient {
       stored.salt_auth,
       stored.salt_wrap,
       stored.seed,
-      "test"
+      info
     );
 
     this.encryptionKey = Uint8Array.from(encryptionKey);
+  }
+
+  async encrypt(data: Uint8Array, recipient: Address) {
+    if (!this.encryptionKey) {
+      throw new Error("Client is not logged in - encryption key is missing");
+    }
+
+    const recipientPubKey = await this.contracts.FSKeyRegistry.read.publicKeys([
+      recipient,
+    ]);
+
+    const { sharedKey } = createSharedKey(
+      this.encryptionKey.toString(),
+      recipientPubKey
+    );
+    const cryptoKey = await this.deriveRawAesKey(Uint8Array.from(sharedKey));
+
+    const iv = crypto.getRandomValues(new Uint8Array(12));
+    const encrypted = await crypto.subtle.encrypt(
+      {
+        name: "AES-GCM",
+        iv,
+      },
+      cryptoKey,
+      data
+    );
+
+    return { encrypted, iv };
+  }
+
+  async decrypt(encrypted: ArrayBuffer, iv: Uint8Array, sender: Address) {
+    if (!this.encryptionKey) {
+      throw new Error("Client is not logged in - encryption key is missing");
+    }
+
+    const senderPubKey = await this.contracts.FSKeyRegistry.read.publicKeys([
+      sender,
+    ]);
+
+    const { sharedKey } = createSharedKey(
+      this.encryptionKey.toString(),
+      senderPubKey
+    );
+    const cryptoKey = await this.deriveRawAesKey(Uint8Array.from(sharedKey));
+
+    return await crypto.subtle.decrypt(
+      {
+        name: "AES-GCM",
+        iv,
+      },
+      cryptoKey,
+      encrypted
+    );
   }
 }
