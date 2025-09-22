@@ -1,5 +1,6 @@
 import { customType, integer } from "drizzle-orm/sqlite-core";
 import { isAddress, checksumAddress } from "viem";
+import { jsonParse, jsonStringify } from "./utils/json";
 
 export const timestamps = {
   createdAt: integer()
@@ -35,9 +36,9 @@ export const JsonStringType = customType<{
     return "text";
   },
   toDriver(value) {
-    return JSON.stringify(value);
+    return jsonStringify(value);
   },
   fromDriver(value) {
-    return JSON.parse(value);
+    return jsonParse(value);
   },
 });
