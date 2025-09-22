@@ -2,7 +2,9 @@ import {
   createPublicClient,
   encodePacked,
   keccak256,
+  sliceHex,
   toHex,
+  concatHex,
   type Account,
   type Address,
   type Chain,
@@ -119,6 +121,8 @@ export class FilosignClient {
       info
     );
 
+    const encSeedHex = `0x${toHex(encSeed)}` as const;
+
     await this.tx(
       this.contracts.FSKeyRegistry.write.registerKeygenData([
         {
@@ -126,7 +130,9 @@ export class FilosignClient {
           salt_pin: `0x${toHex(salts.pinSalt)}`,
           salt_auth: `0x${toHex(salts.authSalt)}`,
           salt_wrap: `0x${toHex(salts.wrapperSalt)}`,
-          seed: `0x${toHex(encSeed)}`,
+          seed_head: sliceHex(encSeedHex, 0, 20),
+          seed_word: sliceHex(encSeedHex, 20, 52),
+          seed_tail: sliceHex(encSeedHex, 52, 72),
           commitment_pin: pinCommitment,
         },
         `0x${toHex(publicKey)}`,
@@ -159,7 +165,9 @@ export class FilosignClient {
       stored_salt_wrap,
       stored_salt_pin,
       stored_nonce,
-      stored_seed,
+      stored_seed_head,
+      stored_seed_word,
+      stored_seed_tail,
       stored_commitment_pin,
     ] = await this.contracts.FSKeyRegistry.read.keygenData([this.address]);
 
@@ -172,7 +180,9 @@ export class FilosignClient {
       salt_wrap: toB64(stored_salt_wrap),
       salt_pin: toB64(stored_salt_pin),
       nonce: toB64(stored_nonce),
-      seed: toB64(stored_seed),
+      seed: toB64(
+        concatHex([stored_seed_head, stored_seed_word, stored_seed_tail])
+      ),
     };
 
     const { challenge } = generateRegisterChallenge(
