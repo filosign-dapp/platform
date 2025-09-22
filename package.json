@@ -7,12 +7,14 @@
     "packages/*"
   ],
   "devDependencies": {
-    "@types/bun": "latest"
+    "@types/bun": "latest",
+    "@types/fast-json-stable-stringify": "^2.1.2"
   },
   "peerDependencies": {
     "typescript": "^5"
   },
   "dependencies": {
+    "fast-json-stable-stringify": "^2.1.0",
     "viem": "^2.37.7"
   }
 }
