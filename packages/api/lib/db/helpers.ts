@@ -26,3 +26,18 @@ export const evmAddressType = customType<{
     return value;
   },
 });
+
+export const JsonStringType = customType<{
+  data: Record<string, any>;
+  driverData: string;
+}>({
+  dataType() {
+    return "text";
+  },
+  toDriver(value) {
+    return JSON.stringify(value);
+  },
+  fromDriver(value) {
+    return JSON.parse(value);
+  },
+});
