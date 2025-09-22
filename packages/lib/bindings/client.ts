@@ -25,6 +25,7 @@ import {
   regenerateEncryptionKey,
   toB64,
 } from "filosign-crypto-utils";
+import { signRegisterChallenge } from "../utils/signature";
 
 type Wallet = WalletClient<Transport, Chain, Account>;
 
@@ -94,12 +95,13 @@ export class FilosignClient {
       this.version.toString(),
       nonce
     );
-    const signature = await this.wallet.signMessage({
-      message: challenge,
+    const signature = await signRegisterChallenge({
+      walletClient: this.wallet,
+      challenge,
     });
 
     const { encSeed } = deriveEncryptionMaterial(
-      signature,
+      signature.flat,
       pin,
       salts.pinSalt,
       salts.authSalt,
@@ -112,7 +114,7 @@ export class FilosignClient {
     );
 
     const { publicKey } = getPublicKeyFromRegenerated(
-      signature,
+      signature.flat,
       pin,
       salts.pinSalt,
       salts.authSalt,
@@ -140,7 +142,7 @@ export class FilosignClient {
     );
 
     const { encryptionKey } = regenerateEncryptionKey(
-      signature,
+      signature.flat,
       pin,
       salts.pinSalt,
       salts.authSalt,
@@ -191,12 +193,13 @@ export class FilosignClient {
       stored.nonce
     );
 
-    const regenerated_signature = await this.wallet.signMessage({
-      message: challenge,
+    const regenerated_signature = await signRegisterChallenge({
+      walletClient: this.wallet,
+      challenge,
     });
 
     const { encryptionKey } = regenerateEncryptionKey(
-      regenerated_signature,
+      regenerated_signature.flat,
       pin,
       stored.salt_pin,
       stored.salt_auth,
