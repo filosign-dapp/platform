@@ -5,6 +5,7 @@ export const timestamps = {
   createdAt: integer()
     .notNull()
     .$default(() => Date.now()),
+  updatedAt: integer().$onUpdate(() => Date.now()),
   deletedAt: integer(),
 };
 
