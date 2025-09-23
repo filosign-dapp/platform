@@ -5,6 +5,7 @@ const INDEXER = {
   LOGS_PER_TX: 10,
   DEFAULT_START_BLOCK: 3_044_275n,
   JOB_LOCK_TTL_MS: 30_000,
+  DEFAULT_MAX_JOB_ATTEMPTS: 5,
 };
 
 const config = {

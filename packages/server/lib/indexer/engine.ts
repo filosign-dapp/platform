@@ -5,6 +5,7 @@ import type { IndexerCheckpointIdentifier } from "../db/schema/sys";
 import { provider } from "./provider";
 import { getContracts } from "@filosign/contracts";
 import { bigIntMax, bigIntMin } from "../db/utils/math";
+import { type GetLogsReturnType } from "viem";
 
 const contracts = getContracts(provider);
 const { indexerCheckpoints, pendingJobs } = db.schema;
@@ -43,7 +44,7 @@ async function updateCheckpoint(
 }
 
 export async function startIndexer(contract: keyof typeof contracts) {
-  const identifier = contract.toUpperCase();
+  const identifier = contract.toUpperCase() as Uppercase<typeof contract>;
 
   while (true) {
     try {
@@ -77,6 +78,7 @@ export async function startIndexer(contract: keyof typeof contracts) {
         toBlock: to,
         address: contracts[contract].address,
         events: contracts[contract].abi,
+        strict: true,
       });
 
       logs.sort((a, b) => {
@@ -87,7 +89,7 @@ export async function startIndexer(contract: keyof typeof contracts) {
 
       for (const log of logs) {
         db.insert(pendingJobs).values({
-          type: `${contract}_EVENT_${log.eventName}`,
+          type: `${identifier}_EVENT_${log.eventName}`,
           payload: log,
         });
       }
@@ -100,3 +102,9 @@ export async function startIndexer(contract: keyof typeof contracts) {
     }
   }
 }
+
+export type ProviderLogEntry = GetLogsReturnType<
+  undefined,
+  (typeof contracts)[keyof typeof contracts]["abi"],
+  true
+>[number];
