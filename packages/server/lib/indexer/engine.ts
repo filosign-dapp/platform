@@ -5,10 +5,9 @@ import type { IndexerCheckpointIdentifier } from "../db/schema/sys";
 import { provider } from "./provider";
 import { getContracts } from "@filosign/contracts";
 import { bigIntMax, bigIntMin } from "../db/utils/math";
-import { processEvent } from "./processor";
 
 const contracts = getContracts(provider);
-const { indexerCheckpoints } = db.schema;
+const { indexerCheckpoints, pendingJobs } = db.schema;
 
 async function getCheckpoint(identifier: IndexerCheckpointIdentifier) {
   const row = db
@@ -87,7 +86,10 @@ export async function startIndexer(contract: keyof typeof contracts) {
       });
 
       for (const log of logs) {
-        processEvent(event, applyToApprovals);
+        db.insert(pendingJobs).values({
+          type: `${contract}_EVENT_${log.eventName}`,
+          payload: log,
+        });
       }
 
       await updateCheckpoint(identifier, to);
