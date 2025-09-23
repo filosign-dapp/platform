@@ -17,14 +17,13 @@ export type IndexerCheckpointIdentifier =
 export const pendingJobs = t.sqliteTable(
   "pending_jobs",
   {
-    id: t.text().primaryKey(),
+    id: t
+      .text()
+      .primaryKey()
+      .$default(() => Bun.randomUUIDv7()),
     type: t.text().notNull(),
     payload: tJsonString().notNull(),
 
-    status: t
-      .text({ enum: ["PENDING", "RUNNING", "DONE", "CANCELLED", "FAILED"] })
-      .notNull()
-      .default("PENDING"),
     tries: t.integer("tries").notNull().default(0),
     maxAttempts: t.integer("maxAttempts").notNull().default(5),
 
@@ -33,6 +32,10 @@ export const pendingJobs = t.sqliteTable(
       .notNull()
       .$default(() => Date.now()),
     lastError: t.text(),
+
+    lockedUntil: t.integer(),
+    lockedBy: t.text(),
+
     ...timestamps,
   },
   (table) => [t.index("idx_pending_jobs_type").on(table.type)]

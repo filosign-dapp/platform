@@ -1,4 +1,3 @@
-import { randomUUIDv7 } from "bun";
 import * as t from "drizzle-orm/sqlite-core";
 import {
   tBoolean,
@@ -15,7 +14,7 @@ export const shareApprovals = t.sqliteTable(
     id: t
       .text()
       .primaryKey()
-      .$default(() => randomUUIDv7()),
+      .$default(() => Bun.randomUUIDv7()),
     recipientWallet: tEvmAddress()
       .notNull()
       .references(() => users.walletAddress),
@@ -44,7 +43,7 @@ export const shareApprovalHistory = t.sqliteTable(
     id: t
       .text()
       .primaryKey()
-      .$default(() => randomUUIDv7()),
+      .$default(() => Bun.randomUUIDv7()),
     approvalId: t.text().notNull(), // references shareApprovals.id but we used string to avoid FK complexty
     action: t.text({ enum: ["ENABLED", "REVOKED"] }).notNull(),
     txHash: tHash().notNull(),
@@ -67,7 +66,7 @@ export const shareRequests = t.sqliteTable("share_requests", {
   id: t
     .text()
     .primaryKey()
-    .$default(() => randomUUIDv7()),
+    .$default(() => Bun.randomUUIDv7()),
   senderWallet: tEvmAddress()
     .notNull()
     .references(() => users.walletAddress),
