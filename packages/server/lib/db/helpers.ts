@@ -75,3 +75,18 @@ export const tBoolean = customType<{
     return value === 1;
   },
 });
+
+export const tBigInt = customType<{
+  data: bigint;
+  driverData: string;
+}>({
+  dataType() {
+    return "text";
+  },
+  toDriver(value) {
+    return value.toString();
+  },
+  fromDriver(value) {
+    return BigInt(value);
+  },
+});
