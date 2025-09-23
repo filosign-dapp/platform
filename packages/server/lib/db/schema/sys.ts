@@ -1,10 +1,18 @@
 import * as t from "drizzle-orm/sqlite-core";
-import { timestamps, tJsonString } from "../helpers";
+import { tBigInt, timestamps, tJsonString } from "../helpers";
 
 export const indexerCheckpoints = t.sqliteTable("indexer_checkpoints", {
-  identifier: t.text().primaryKey(),
-  blockHeight: t.integer().notNull(),
+  identifier: t
+    .text({
+      //  enum: ["FSMANAGER", "FSFILEREGISTRY", "FSKEYREGISTRY"]
+    })
+    .primaryKey(),
+  blockHeight: tBigInt().notNull(),
+  ...timestamps,
 });
+
+export type IndexerCheckpointIdentifier =
+  typeof indexerCheckpoints.$inferSelect.identifier;
 
 export const pendingJobs = t.sqliteTable(
   "pending_jobs",
