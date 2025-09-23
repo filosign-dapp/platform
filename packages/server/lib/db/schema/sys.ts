@@ -28,8 +28,11 @@ export const pendingJobs = t.sqliteTable(
     tries: t.integer("tries").notNull().default(0),
     maxAttempts: t.integer("maxAttempts").notNull().default(5),
 
-    next_attempt: t.text(),
-    last_error: t.text(),
+    nextAttemptAt: t
+      .integer()
+      .notNull()
+      .$default(() => Date.now()),
+    lastError: t.text(),
     ...timestamps,
   },
   (table) => [t.index("idx_pending_jobs_type").on(table.type)]
