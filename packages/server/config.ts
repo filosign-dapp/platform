@@ -4,6 +4,7 @@ const INDEXER = {
   POLL_INTERVAL_MS: 3_000,
   LOGS_PER_TX: 10,
   DEFAULT_START_BLOCK: 3_044_275n,
+  JOB_LOCK_TTL_MS: 30_000,
 };
 
 const config = {
