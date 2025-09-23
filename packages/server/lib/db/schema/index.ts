@@ -1,8 +1,12 @@
 import * as sys from "./sys";
+import * as shareCapability from "./shareCapability";
+import * as user from "./user";
 
 // Combine all schema parts
 const schema = {
   ...sys,
+  ...shareCapability,
+  ...user,
 };
 
 export default schema;
