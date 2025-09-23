@@ -1,5 +1,6 @@
 import * as t from "drizzle-orm/sqlite-core";
 import {
+  tBigInt,
   tBoolean,
   tEvmAddress,
   tHash,
@@ -23,7 +24,7 @@ export const shareApprovals = t.sqliteTable(
       .references(() => users.walletAddress),
 
     active: tBoolean().notNull().default(false),
-    lastChangedBlock: t.integer(),
+    lastChangedBlock: tBigInt(),
     lastTxHash: tHash(),
 
     ...timestamps,
