@@ -1,6 +1,21 @@
 import config from "../../config";
 import { and, eq, isNull, lte, ne, or } from "drizzle-orm";
 import db from "../db";
+import type { TypedWorker } from "./worker";
+
+const w = new Worker(new URL("./worker.ts", import.meta.url), {
+  type: "module",
+}) as unknown as TypedWorker;
+
+w.addEventListener("message", (ev) => {
+  const res = ev.data;
+  if (res.error) {
+    handleJobFailure(res.id, res.error);
+  }
+  if (res.result) {
+    console.log("Job completed:", res.id);
+  }
+});
 
 const { pendingJobs } = db.schema;
 
@@ -46,7 +61,44 @@ async function claimOneJob(workerId: string) {
   });
 }
 
-export async function startJobWorker(workerId: string) {
+async function handleJobFailure(jobId: string, err: unknown) {
+  return db.transaction(async (tx) => {
+    const job = tx
+      .select()
+      .from(pendingJobs)
+      .where(eq(pendingJobs.id, jobId))
+      .get();
+
+    if (!job) return;
+
+    const tries = (job.tries ?? 0) + 1;
+
+    if (tries >= (job.maxAttempts ?? config.INDEXER.DEFAULT_MAX_JOB_ATTEMPTS)) {
+      tx.update(pendingJobs)
+        .set({
+          lastError: String(err),
+          nextAttemptAt: -1, // this means marked as permantantly faild
+          lockedUntil: null,
+        })
+        .where(eq(pendingJobs.id, job.id))
+        .run();
+    } else {
+      const nextAt = Date.now() + computeBackoffMs(tries);
+
+      tx.update(pendingJobs)
+        .set({
+          lastError: String(err),
+          nextAttemptAt: nextAt,
+          lockedUntil: null,
+          tries,
+        })
+        .where(eq(pendingJobs.id, job.id))
+        .run();
+    }
+  });
+}
+
+export async function startJobScheduler(workerId: string) {
   while (true) {
     try {
       const job = await claimOneJob(workerId);
@@ -56,34 +108,11 @@ export async function startJobWorker(workerId: string) {
       }
 
       try {
-        const res = await processJob(job);
+        w.postMessage(job);
 
         db.delete(pendingJobs).where(eq(pendingJobs.id, job.id)).run();
       } catch (err) {
-        const tries = (job.tries ?? 0) + 1;
-
-        if (tries >= (job.maxAttempts ?? 5)) {
-          db.update(pendingJobs)
-            .set({
-              lastError: String(err),
-              nextAttemptAt: -1, // this means marked as faild
-              lockedUntil: null,
-            })
-            .where(eq(pendingJobs.id, job.id))
-            .run();
-        } else {
-          const nextAt = Date.now() + computeBackoffMs(tries);
-
-          db.update(pendingJobs)
-            .set({
-              lastError: String(err),
-              nextAttemptAt: nextAt,
-              lockedUntil: null,
-              tries,
-            })
-            .where(eq(pendingJobs.id, job.id))
-            .run();
-        }
+        await handleJobFailure(job.id, err);
       }
     } catch (err) {
       console.error("Job worker error:", err);
