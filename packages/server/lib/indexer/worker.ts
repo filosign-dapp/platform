@@ -28,7 +28,14 @@ export type TypedWorker = Omit<Worker, "postMessage" | "addEventListener"> & {
 
 addEventListener("message", (ev: MessageEvent<Incoming>) => {
   const job = ev.data;
-  processJob(job);
+  processJob(job).catch((error) => {
+    const res: Outgoing = {
+      id: job.id,
+      result: null,
+      error: error,
+    };
+    postMessage(res);
+  });
 });
 
 async function processJob(job: Job) {
@@ -44,21 +51,66 @@ async function processJob(job: Job) {
 
     if (contractName === "FSManager") {
       if (log.eventName === "SenderApproved") {
-        db.update(schema.shareApprovals)
-          .set({
+        db.update(schema.shareRequests)
+          .set({ status: "ACCEPTED" })
+          .where(
+            and(
+              eq(schema.shareRequests.senderWallet, log.args.sender),
+              eq(schema.shareRequests.recipientWallet, log.args.recipient),
+              eq(schema.shareRequests.status, "PENDING")
+            )
+          );
+
+        const approval = db
+          .insert(schema.shareApprovals)
+          .values({
+            senderWallet: log.args.sender,
+            recipientWallet: log.args.recipient,
             active: true,
-            lastChangedBlock: log.blockNumber,
-            lastTxHash: log.transactionHash,
+          })
+          .onConflictDoUpdate({
+            target: [
+              schema.shareApprovals.senderWallet,
+              schema.shareApprovals.recipientWallet,
+            ],
+            set: {
+              active: true,
+            },
+          })
+          .returning()
+          .get();
+
+        db.insert(schema.shareApprovalHistory)
+          .values({
+            approvalId: approval.id,
+            action: "ENABLED",
+            blockNumber: log.blockNumber,
+            txHash: log.transactionHash,
           })
           .run();
       }
 
       if (log.eventName === "SenderRevoked") {
-        db.update(schema.shareApprovals)
+        const approval = db
+          .update(schema.shareApprovals)
           .set({
             active: false,
-            lastChangedBlock: log.blockNumber,
-            lastTxHash: log.transactionHash,
+          })
+          .where(
+            and(
+              eq(schema.shareApprovals.senderWallet, log.args.sender),
+              eq(schema.shareApprovals.recipientWallet, log.args.recipient)
+            )
+          )
+          .returning()
+          .get();
+
+        db.insert(schema.shareApprovalHistory)
+          .values({
+            approvalId: approval.id,
+            action: "REVOKED",
+            blockNumber: log.blockNumber,
+            txHash: log.transactionHash,
           })
           .run();
       }
