@@ -1,6 +1,6 @@
 import { customType, integer } from "drizzle-orm/sqlite-core";
 import { isAddress, checksumAddress, isHash, isHex } from "viem";
-import { jsonParse, jsonStringify } from "./utils/json";
+import { jsonParse, jsonStringify } from "../utils/json";
 
 export const timestamps = {
   createdAt: integer()
