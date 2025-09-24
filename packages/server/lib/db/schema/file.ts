@@ -12,7 +12,7 @@ import { users } from "./user";
 export const files = t.sqliteTable(
   "files",
   {
-    cid: t.text().primaryKey(),
+    pieceCid: t.text().primaryKey(),
     ownerWallet: tEvmAddress()
       .notNull()
       .references(() => users.walletAddress),
@@ -21,9 +21,8 @@ export const files = t.sqliteTable(
       .references(() => users.walletAddress),
 
     encryptedKey: t.text(),
-    metadata: tJsonString().notNull(),
+    metadata: tJsonString(),
 
-    onchainRegistered: tBoolean().notNull().default(false),
     onchainTxHash: tHash(),
 
     ...timestamps,
@@ -31,7 +30,7 @@ export const files = t.sqliteTable(
   (table) => [
     t.index("idx_files_owner").on(table.ownerWallet),
     t.index("idx_files_recipient").on(table.recipientWallet),
-    t.index("idx_files_cididentifier").on(table.cid),
+    t.index("idx_files_pieceCid").on(table.pieceCid),
   ]
 );
 
@@ -42,7 +41,7 @@ export const fileSignatures = t.sqliteTable(
     fileCid: t
       .text()
       .notNull()
-      .references(() => files.cid, { onDelete: "cascade" }),
+      .references(() => files.pieceCid, { onDelete: "cascade" }),
     signerWallet: t.text().notNull(),
     signatureVisualHash: tHash().notNull(),
     compactSignature: t.text().notNull(),
