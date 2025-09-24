@@ -44,15 +44,17 @@ export const fileSignatures = t.sqliteTable(
   "file_signatures",
   {
     id: t.text().primaryKey().default("uuid_generate_v4()"),
-    fileCid: t
+    filePieceCid: t
       .text()
       .notNull()
       .references(() => files.pieceCid, { onDelete: "cascade" }),
     signerWallet: t.text().notNull(),
     signatureVisualHash: tBytes32().notNull(),
     compactSignature: t.text().notNull(),
-    timestamp: t.text().notNull(),
+    timestamp: t.integer().notNull(),
     onchainTxHash: t.text(),
+
+    ...timestamps,
   },
-  (table) => [t.index("idx_signatures_file").on(table.fileCid)]
+  (table) => [t.index("idx_signatures_file").on(table.filePieceCid)]
 );
