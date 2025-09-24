@@ -1,5 +1,5 @@
 import config from "../../config";
-import { and, eq, isNull, lte, ne, or } from "drizzle-orm";
+import { and, eq, isNull, lte, ne, or, sql } from "drizzle-orm";
 import db from "../db";
 import type { TypedWorker } from "./worker";
 import { tryCatch } from "../utils/tryCatch";
@@ -52,36 +52,33 @@ function computeBackoffMs(attempts: number) {
 async function claimOneJob(workerId: string) {
   return db.transaction(async (tx) => {
     const now = Date.now();
+    const lockUntil = now + config.INDEXER.JOB_LOCK_TTL_MS;
 
     const nextJob = tx
-      .select()
-      .from(pendingJobs)
-      .where(
-        and(
-          lte(pendingJobs.nextAttemptAt, now),
-          ne(pendingJobs.nextAttemptAt, -1),
-          or(isNull(pendingJobs.lockedUntil), lte(pendingJobs.lockedUntil, now))
-        )
-      )
-      .orderBy(pendingJobs.nextAttemptAt)
-      .get();
-
-    if (!nextJob) return null;
-
-    const lockUntil = Date.now() + config.INDEXER.JOB_LOCK_TTL_MS;
-
-    const job = tx
       .update(pendingJobs)
       .set({
         lockedUntil: lockUntil,
         lockedBy: workerId,
-        tries: (nextJob.tries ?? 0) + 1,
+        tries: sql`COALESCE(${pendingJobs.tries}, 0) + 1`,
       })
-      .where(eq(pendingJobs.id, nextJob.id))
+      .where(
+        sql`${pendingJobs.id} = (
+        SELECT id FROM ${sql.identifier(pendingJobs._.name ?? "pending_jobs")}
+        WHERE ${pendingJobs.nextAttemptAt} <= ${now}
+          AND ${pendingJobs.nextAttemptAt} != -1
+          AND (${pendingJobs.lockedUntil} IS NULL OR ${
+          pendingJobs.lockedUntil
+        } <= ${now})
+        ORDER BY ${pendingJobs.nextAttemptAt}
+        LIMIT 1
+      )`
+      )
       .returning()
       .get();
 
-    return job;
+    if (!nextJob) return null;
+
+    return nextJob;
   });
 }
 
