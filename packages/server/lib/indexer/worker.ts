@@ -3,8 +3,13 @@ import { createDbClient } from "../db/client";
 import schema from "../db/schema";
 import type { ProviderLogEntry } from "./engine";
 import { getProvider } from "./provider";
-import { concatHex, toHex } from "viem";
-import { eq } from "drizzle-orm";
+import {
+  concatHex,
+  serializeCompactSignature,
+  signatureToCompactSignature,
+  toHex,
+} from "viem";
+import { and, eq } from "drizzle-orm";
 
 type Job = typeof schema.pendingJobs.$inferSelect;
 type Incoming = Job;
@@ -126,6 +131,49 @@ async function processJob(job: Job) {
             acknowledgedTxHash: log.transactionHash,
           })
           .where(eq(schema.files.pieceCid, cid));
+      }
+
+      if (log.eventName === "SignatureSubmitted") {
+        const signatureData =
+          await contracts.FSFileRegistry.read.getSignatureData([
+            log.args.cidIdentifier,
+          ]);
+
+        const fileData = await contracts.FSFileRegistry.read.getFileData([
+          log.args.cidIdentifier,
+        ]);
+
+        const cid = concatHex([
+          fileData.pieceCidPrefix,
+          toHex(fileData.pieceCidTail),
+        ]);
+
+        const signatureExists = db
+          .select()
+          .from(schema.fileSignatures)
+          .where(eq(schema.fileSignatures.onchainTxHash, log.transactionHash))
+          .get();
+
+        if (signatureExists) {
+          return;
+        }
+
+        db.insert(schema.fileSignatures)
+          .values({
+            filePieceCid: cid,
+            signerWallet: log.args.signer,
+            signatureVisualHash: signatureData.signatureVisualHash,
+            timestamp: signatureData.timestamp,
+            compactSignature: serializeCompactSignature(
+              signatureToCompactSignature({
+                v: BigInt(signatureData.v),
+                r: signatureData.r,
+                s: signatureData.s,
+              })
+            ),
+            onchainTxHash: log.transactionHash,
+          })
+          .run();
       }
     }
   }
