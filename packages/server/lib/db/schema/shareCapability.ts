@@ -3,7 +3,7 @@ import {
   tBigInt,
   tBoolean,
   tEvmAddress,
-  tHash,
+  tBytes32,
   timestamps,
   tJsonString,
 } from "../helpers";
@@ -25,7 +25,7 @@ export const shareApprovals = t.sqliteTable(
 
     active: tBoolean().notNull().default(false),
     lastChangedBlock: tBigInt(),
-    lastTxHash: tHash(),
+    lastTxHash: tBytes32(),
 
     ...timestamps,
   },
@@ -47,7 +47,7 @@ export const shareApprovalHistory = t.sqliteTable(
       .$default(() => Bun.randomUUIDv7()),
     approvalId: t.text().notNull(), // references shareApprovals.id but we used string to avoid FK complexty
     action: t.text({ enum: ["ENABLED", "REVOKED"] }).notNull(),
-    txHash: tHash().notNull(),
+    txHash: tBytes32().notNull(),
     blockNumber: t.integer("blockNumber").notNull(),
 
     createdAt: t

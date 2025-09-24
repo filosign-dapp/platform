@@ -3,7 +3,8 @@ import {
   tBigInt,
   tBoolean,
   tEvmAddress,
-  tHash,
+  tBytes32,
+  tHex,
   timestamps,
   tJsonString,
 } from "../helpers";
@@ -20,17 +21,22 @@ export const files = t.sqliteTable(
       .notNull()
       .references(() => users.walletAddress),
 
-    encryptedKey: t.text(),
+    encryptedKey: tHex(),
+    proxyPublicKey: tBytes32(),
     metadata: tJsonString(),
 
-    onchainTxHash: tHash(),
+    onchainTxHash: tBytes32(),
+
+    acknowledged: tBoolean().notNull().default(false),
+    acknowledgedTxHash: tBytes32(),
 
     ...timestamps,
   },
   (table) => [
     t.index("idx_files_owner").on(table.ownerWallet),
     t.index("idx_files_recipient").on(table.recipientWallet),
-    t.index("idx_files_pieceCid").on(table.pieceCid),
+    t.uniqueIndex("ux_files_pieceCid").on(table.pieceCid),
+    t.uniqueIndex("ux_files_onchainTxHash").on(table.onchainTxHash),
   ]
 );
 
@@ -43,7 +49,7 @@ export const fileSignatures = t.sqliteTable(
       .notNull()
       .references(() => files.pieceCid, { onDelete: "cascade" }),
     signerWallet: t.text().notNull(),
-    signatureVisualHash: tHash().notNull(),
+    signatureVisualHash: tBytes32().notNull(),
     compactSignature: t.text().notNull(),
     timestamp: t.text().notNull(),
     onchainTxHash: t.text(),

@@ -1,12 +1,12 @@
 import * as t from "drizzle-orm/sqlite-core";
-import { tEvmAddress, tJsonString, timestamps } from "../helpers";
+import { tEvmAddress, tBytes32, tJsonString, timestamps } from "../helpers";
 
 export const users = t.sqliteTable("users", {
   walletAddress: tEvmAddress().primaryKey(),
   email: t.text(),
   lastActiveAt: t.integer().notNull(),
   keygenDataJson: tJsonString(),
-  encryptionPublicKey: t.text(),
+  encryptionPublicKey: tBytes32(),
 
   ...timestamps,
 });

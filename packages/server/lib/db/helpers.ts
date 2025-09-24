@@ -1,5 +1,5 @@
 import { customType, integer } from "drizzle-orm/sqlite-core";
-import { isAddress, checksumAddress, isHash } from "viem";
+import { isAddress, checksumAddress, isHash, isHex } from "viem";
 import { jsonParse, jsonStringify } from "./utils/json";
 
 export const timestamps = {
@@ -43,7 +43,7 @@ export const tJsonString = customType<{
   },
 });
 
-export const tHash = customType<{
+export const tBytes32 = customType<{
   data: string;
   driverData: string;
 }>({
@@ -53,6 +53,24 @@ export const tHash = customType<{
   toDriver(value) {
     if (!isHash(value)) {
       throw new Error(`Invalid hash: ${value}`);
+    }
+    return value;
+  },
+  fromDriver(value) {
+    return value;
+  },
+});
+
+export const tHex = customType<{
+  data: string;
+  driverData: string;
+}>({
+  dataType() {
+    return "text";
+  },
+  toDriver(value) {
+    if (!isHex(value)) {
+      throw new Error(`Invalid hex: ${value}`);
     }
     return value;
   },
