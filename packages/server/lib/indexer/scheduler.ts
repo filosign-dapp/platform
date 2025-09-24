@@ -2,7 +2,7 @@ import config from "../../config";
 import { and, eq, isNull, lte, ne, or, sql } from "drizzle-orm";
 import db from "../db";
 import type { TypedWorker } from "./worker";
-import { tryCatch } from "../utils/tryCatch";
+import tryCatchSync, { tryCatch } from "../utils/tryCatch";
 
 const { pendingJobs } = db.schema;
 
@@ -26,17 +26,28 @@ w.addEventListener("message", async (e) => {
   if (res.result) {
     console.log("Job completed:", res.id);
 
-    const { error } = await tryCatch(
+    const { error } = tryCatchSync(() =>
       db
         .delete(db.schema.pendingJobs)
         .where(eq(db.schema.pendingJobs.id, res.id))
+        .run()
     );
     if (error) {
       console.error("Failed to delete completed job:", res.id, error);
-      db.update(db.schema.pendingJobs)
-        .set({ lockedUntil: Infinity })
-        .where(eq(db.schema.pendingJobs.id, res.id))
-        .run();
+      const { error: updateError } = tryCatchSync(() =>
+        db
+          .update(db.schema.pendingJobs)
+          .set({ nextAttemptAt: -1, lockedUntil: null })
+          .where(eq(db.schema.pendingJobs.id, res.id))
+          .run()
+      );
+      if (updateError) {
+        console.error(
+          "Failed to mark job as failed after delete failure:",
+          res.id,
+          updateError
+        );
+      }
     }
     return;
   }
@@ -82,7 +93,7 @@ async function claimOneJob(workerId: string) {
   });
 }
 
-async function handleJobFailure(jobId: string, err: unknown) {
+async function handleJobFailure(jobId: string, errMsg: string) {
   return db.transaction(async (tx) => {
     const job = tx
       .select()
@@ -92,12 +103,14 @@ async function handleJobFailure(jobId: string, err: unknown) {
 
     if (!job) return;
 
-    const tries = (job.tries ?? 0) + 1;
+    const tries = job.tries ?? 0;
+    const maxAttempts =
+      job.maxAttempts ?? config.INDEXER.DEFAULT_MAX_JOB_ATTEMPTS;
 
-    if (tries >= (job.maxAttempts ?? config.INDEXER.DEFAULT_MAX_JOB_ATTEMPTS)) {
+    if (tries >= maxAttempts) {
       tx.update(pendingJobs)
         .set({
-          lastError: String(err),
+          lastError: String(errMsg),
           nextAttemptAt: -1, // this means marked as permantantly faild
           lockedUntil: null,
         })
@@ -108,10 +121,10 @@ async function handleJobFailure(jobId: string, err: unknown) {
 
       tx.update(pendingJobs)
         .set({
-          lastError: String(err),
+          lastError: String(errMsg),
           nextAttemptAt: nextAt,
           lockedUntil: null,
-          tries,
+          lockedBy: null,
         })
         .where(eq(pendingJobs.id, job.id))
         .run();
@@ -130,14 +143,17 @@ export async function startJobScheduler(workerId: string) {
 
       try {
         w.postMessage(job);
-
-        db.delete(pendingJobs).where(eq(pendingJobs.id, job.id)).run();
       } catch (err) {
-        await handleJobFailure(job.id, err);
+        const errMsg = err instanceof Error ? err.message : String(err);
+        await handleJobFailure(job.id, errMsg);
       }
     } catch (err) {
       console.error("Job worker error:", err);
       await new Promise((r) => setTimeout(r, 8000));
     }
   }
+}
+
+export async function stopScheduler() {
+  w.terminate();
 }
