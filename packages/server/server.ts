@@ -1,4 +1,10 @@
 import { Hono } from "hono";
+import { startIndexer } from "./lib/indexer/engine";
+import { startJobScheduler } from "./lib/indexer/scheduler";
+
+startIndexer("FSFileRegistry");
+const workerId = `${require("os").hostname()}:${process.pid}`;
+startJobScheduler(workerId);
 
 const app = new Hono();
 
