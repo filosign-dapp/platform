@@ -2,22 +2,45 @@ import config from "../../config";
 import { and, eq, isNull, lte, ne, or } from "drizzle-orm";
 import db from "../db";
 import type { TypedWorker } from "./worker";
+import { tryCatch } from "../utils/tryCatch";
+
+const { pendingJobs } = db.schema;
 
 const w = new Worker(new URL("./worker.ts", import.meta.url), {
   type: "module",
 }) as unknown as TypedWorker;
 
-w.addEventListener("message", (ev) => {
-  const res = ev.data;
+w.addEventListener("message", async (e) => {
+  const res = e.data;
+
   if (res.error) {
-    handleJobFailure(res.id, res.error);
+    console.error("Job failed:", res.id, res.error);
+
+    const { error } = await tryCatch(handleJobFailure(res.id, res.error));
+    if (error) {
+      console.error("Failed to handle job failure:", res.id, error);
+    }
+    return;
   }
+
   if (res.result) {
     console.log("Job completed:", res.id);
+
+    const { error } = await tryCatch(
+      db
+        .delete(db.schema.pendingJobs)
+        .where(eq(db.schema.pendingJobs.id, res.id))
+    );
+    if (error) {
+      console.error("Failed to delete completed job:", res.id, error);
+      db.update(db.schema.pendingJobs)
+        .set({ lockedUntil: Infinity })
+        .where(eq(db.schema.pendingJobs.id, res.id))
+        .run();
+    }
+    return;
   }
 });
-
-const { pendingJobs } = db.schema;
 
 function computeBackoffMs(attempts: number) {
   const base = 1000;
@@ -29,6 +52,7 @@ function computeBackoffMs(attempts: number) {
 async function claimOneJob(workerId: string) {
   return db.transaction(async (tx) => {
     const now = Date.now();
+
     const nextJob = tx
       .select()
       .from(pendingJobs)
