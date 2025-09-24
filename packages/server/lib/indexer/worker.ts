@@ -1,6 +1,10 @@
+import { getContracts } from "@filosign/contracts";
 import { createDbClient } from "../db/client";
 import schema from "../db/schema";
 import type { ProviderLogEntry } from "./engine";
+import { getProvider } from "./provider";
+import { concatHex, toHex } from "viem";
+import { eq } from "drizzle-orm";
 
 type Job = typeof schema.pendingJobs.$inferSelect;
 type Incoming = Job;
@@ -24,25 +28,105 @@ addEventListener("message", (ev: MessageEvent<Incoming>) => {
 
 async function processJob(job: Job) {
   const db = createDbClient();
+  const contracts = getContracts(getProvider());
   // @ts-ignore This is th best we can do for now
   const log: ProviderLogEntry = job.payload;
 
-  if (job.type.startsWith("FSFILEREGISTRY_EVENT_")) {
-    const eventName = job.type.replace("FSFILEREGISTRY_EVENT_", "");
+  const jobTypeParts = job.type.split("_");
 
-    if (eventName === "SenderApproved") {
-      db.update(schema.shareApprovals).set({
-        active: true,
-        lastChangedBlock: log.blockNumber,
-        lastTxHash: log.transactionHash,
-      });
+  if (jobTypeParts[0] === "EVENT") {
+    const contractName = jobTypeParts[1];
+
+    if (contractName === "FSManager") {
+      if (log.eventName === "SenderApproved") {
+        db.update(schema.shareApprovals)
+          .set({
+            active: true,
+            lastChangedBlock: log.blockNumber,
+            lastTxHash: log.transactionHash,
+          })
+          .run();
+      }
+
+      if (log.eventName === "SenderRevoked") {
+        db.update(schema.shareApprovals)
+          .set({
+            active: false,
+            lastChangedBlock: log.blockNumber,
+            lastTxHash: log.transactionHash,
+          })
+          .run();
+      }
     }
-    if (eventName === "SenderRevoked") {
-      db.update(schema.shareApprovals).set({
-        active: false,
-        lastChangedBlock: log.blockNumber,
-        lastTxHash: log.transactionHash,
-      });
+
+    if (contractName === "FSFileRegistry") {
+      if (log.eventName === "FileRegistered") {
+        const fileData = await contracts.FSFileRegistry.read.getFileData([
+          log.args.cidIdentifier,
+        ]);
+
+        if (!fileData.pieceCidPrefix) {
+          throw new Error(
+            "No pieceCidPrefix in file data, invalid event maybe?"
+          );
+        }
+
+        const cid = concatHex([
+          fileData.pieceCidPrefix,
+          toHex(fileData.pieceCidTail),
+        ]);
+
+        db.update(schema.files)
+          .set({
+            onchainTxHash: log.transactionHash,
+          })
+          .where(eq(schema.files.pieceCid, cid))
+          .run();
+      }
+
+      if (log.eventName === "FileAcknowledged") {
+        const fileData = await contracts.FSFileRegistry.read.getFileData([
+          log.args.cidIdentifier,
+        ]);
+
+        if (!fileData.pieceCidPrefix) {
+          throw new Error(
+            "No pieceCidPrefix in file data, invalid event maybe?"
+          );
+        }
+
+        const cid = concatHex([
+          fileData.pieceCidPrefix,
+          toHex(fileData.pieceCidTail),
+        ]);
+
+        const file = db
+          .select()
+          .from(schema.files)
+          .where(eq(schema.files.pieceCid, cid))
+          .get();
+
+        if (!file) {
+          throw new Error("File not found for FileAcknowledged event");
+        }
+
+        if (file.acknowledged) {
+          if (file.acknowledgedTxHash === log.transactionHash) {
+            return;
+          } else {
+            throw new Error(
+              "Panic! File acknowledged yet event emitted again!"
+            );
+          }
+        }
+
+        db.update(schema.files)
+          .set({
+            acknowledged: true,
+            acknowledgedTxHash: log.transactionHash,
+          })
+          .where(eq(schema.files.pieceCid, cid));
+      }
     }
   }
 }

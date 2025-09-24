@@ -12,7 +12,10 @@ export type ProviderLike = PublicClient<
   NonNullable<Chain>
 >;
 
-export const provider: ProviderLike = createPublicClient({
-  transport: webSocket("wss://wss.node.glif.io/apigw/lotus/rpc/v1"),
-  chain: filecoinCalibration,
-});
+export const getProvider: () => ProviderLike = () =>
+  createPublicClient({
+    transport: webSocket("wss://wss.node.glif.io/apigw/lotus/rpc/v1"),
+    chain: filecoinCalibration,
+  });
+
+export const provider = getProvider();

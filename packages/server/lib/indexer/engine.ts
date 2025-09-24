@@ -89,7 +89,7 @@ export async function startIndexer(contract: keyof typeof contracts) {
 
       for (const log of logs) {
         db.insert(pendingJobs).values({
-          type: `${identifier}_EVENT_${log.eventName}`,
+          type: `EVENT_${contract}_${log.eventName}`,
           payload: log,
         });
       }
