@@ -4,7 +4,7 @@ import config from "../../config";
 import type { IndexerCheckpointIdentifier } from "../db/schema/sys";
 import { provider } from "./provider";
 import { getContracts } from "@filosign/contracts";
-import { bigIntMax, bigIntMin } from "../db/utils/math";
+import { bigIntMax, bigIntMin } from "../utils/math";
 import { type GetLogsReturnType } from "viem";
 
 const contracts = getContracts(provider);
@@ -59,7 +59,7 @@ export async function startIndexer(contract: keyof typeof contracts) {
         continue;
       }
 
-      const from = bigIntMax(0n, checkpoint.blockHeight + 1n);
+      const from = bigIntMax(0n, checkpoint.blockHeight);
 
       if (from > safeLatest) {
         await new Promise((r) =>
@@ -77,7 +77,7 @@ export async function startIndexer(contract: keyof typeof contracts) {
         fromBlock: from,
         toBlock: to,
         address: contracts[contract].address,
-        events: contracts[contract].abi,
+        events: contracts[contract].abi.filter((x: any) => x.type === "event"),
         strict: true,
       });
 
@@ -88,10 +88,12 @@ export async function startIndexer(contract: keyof typeof contracts) {
       });
 
       for (const log of logs) {
-        db.insert(pendingJobs).values({
-          type: `EVENT_${contract}_${log.eventName}`,
-          payload: log,
-        });
+        db.insert(pendingJobs)
+          .values({
+            type: `EVENT_${contract}_${log.eventName}`,
+            payload: log,
+          })
+          .run();
       }
 
       await updateCheckpoint(identifier, to);
