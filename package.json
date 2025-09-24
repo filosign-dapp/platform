@@ -14,8 +14,8 @@
     "typescript": "^5"
   },
   "dependencies": {
+    "@filosign/contracts": "https://github.com/filosign-dapp/contracts.git#f3c6e86",
     "fast-json-stable-stringify": "^2.1.0",
-    "viem": "^2.37.7",
-    "@filosign/contracts": "https://github.com/filosign-dapp/contracts.git#cd29d5a"
+    "viem": "^2.37.7"
   }
 }
