@@ -103,7 +103,7 @@ export async function startJobScheduler(workerId: string) {
     try {
       const job = await claimOneJob(workerId);
       if (!job) {
-        await new Promise((r) => setTimeout(r, 500)); // small sleep, gn gn
+        await new Promise((r) => setTimeout(r, 2000)); // small sleep, gn gn
         continue;
       }
 
@@ -116,7 +116,7 @@ export async function startJobScheduler(workerId: string) {
       }
     } catch (err) {
       console.error("Job worker error:", err);
-      await new Promise((r) => setTimeout(r, 2000));
+      await new Promise((r) => setTimeout(r, 8000));
     }
   }
 }
