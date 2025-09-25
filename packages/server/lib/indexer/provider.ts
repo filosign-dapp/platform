@@ -1,6 +1,6 @@
 import {
   createPublicClient,
-  webSocket,
+  http,
   type Chain,
   type PublicClient,
   type Transport,
@@ -12,10 +12,12 @@ export type ProviderLike = PublicClient<
   NonNullable<Chain>
 >;
 
+const network = filecoinCalibration;
+
 export const getProvider: () => ProviderLike = () =>
   createPublicClient({
-    transport: webSocket("wss://wss.node.glif.io/apigw/lotus/rpc/v1"),
-    chain: filecoinCalibration,
+    transport: http(network.rpcUrls.default.http[0]),
+    chain: network,
   });
 
 export const provider = getProvider();
