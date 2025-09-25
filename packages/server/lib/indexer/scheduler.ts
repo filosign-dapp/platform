@@ -74,7 +74,7 @@ async function claimOneJob(workerId: string) {
       })
       .where(
         sql`${pendingJobs.id} = (
-        SELECT id FROM ${sql.identifier(pendingJobs._.name ?? "pending_jobs")}
+        SELECT id FROM ${sql.identifier("pending_jobs")}
         WHERE ${pendingJobs.nextAttemptAt} <= ${now}
           AND ${pendingJobs.nextAttemptAt} != -1
           AND (${pendingJobs.lockedUntil} IS NULL OR ${
