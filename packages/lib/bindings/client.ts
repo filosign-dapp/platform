@@ -12,6 +12,7 @@ import {
   type PublicClient,
   type Transport,
   type WalletClient,
+  createWalletClient,
 } from "viem";
 import { filecoinCalibration } from "viem/chains";
 import { getContracts } from "@filosign/contracts";
@@ -26,6 +27,7 @@ import {
   toB64,
 } from "filosign-crypto-utils";
 import { signRegisterChallenge } from "../utils/signature";
+import { privateKeyToAccount } from "viem/accounts";
 
 type Wallet = WalletClient<Transport, Chain, Account>;
 
@@ -35,6 +37,7 @@ const primaryChain = filecoinCalibration;
 export class FilosignClient {
   private wallet: Wallet;
   private publicClient: PublicClient;
+  private authKeyClient: WalletClient | null = null;
   private contracts: ReturnType<typeof getContracts<Wallet>>;
   private encryptionKey: Uint8Array | null = null;
   version = 1;
@@ -150,6 +153,23 @@ export class FilosignClient {
       encSeed,
       info
     );
+
+    const { encryptionKey: authKey } = regenerateEncryptionKey(
+      signature.flat,
+      pin,
+      salts.pinSalt,
+      salts.authSalt,
+      salts.wrapperSalt,
+      encSeed,
+      "Auth Key"
+    );
+
+    this.authKeyClient = createWalletClient({
+      transport: this.wallet.transport as unknown as Transport,
+      chain: this.wallet.chain,
+      account: privateKeyToAccount(`0x${toHex(authKey)}`),
+    });
+
     this.encryptionKey = Uint8Array.from(encryptionKey);
   }
 
@@ -207,6 +227,22 @@ export class FilosignClient {
       stored.seed,
       info
     );
+
+    const { encryptionKey: authKey } = regenerateEncryptionKey(
+      regenerated_signature.flat,
+      pin,
+      stored.salt_pin,
+      stored.salt_auth,
+      stored.salt_wrap,
+      stored.seed,
+      "Auth Key"
+    );
+
+    this.authKeyClient = createWalletClient({
+      transport: this.wallet.transport as unknown as Transport,
+      chain: this.wallet.chain,
+      account: privateKeyToAccount(`0x${toHex(authKey)}`),
+    });
 
     this.encryptionKey = Uint8Array.from(encryptionKey);
   }
