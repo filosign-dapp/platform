@@ -115,6 +115,7 @@ async function findLookableBlockAtOrAfter(targetBlockNumber: bigint) {
 
 export async function startIndexer(contract: keyof typeof contracts) {
   const identifier = contract.toUpperCase() as Uppercase<typeof contract>;
+  console.log(`Starting indexer -> ${identifier}`);
 
   while (true) {
     try {
