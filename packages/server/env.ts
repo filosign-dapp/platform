@@ -1,7 +1,6 @@
 const envKeys = [
-  "PRIVY_APP_ID",
-  "PRIVY_APP_SECRET",
-  "PRIVY_JWT_VERIFICATION_KEY",
+  "TG_ANALYTICS_BOT_GROUP_ID",
+  "TG_ANALYTICS_BOT_TOKEN",
 ] as const;
 
 type ENV = Record<(typeof envKeys)[number], string>;
