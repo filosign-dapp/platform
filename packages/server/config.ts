@@ -1,3 +1,5 @@
+import { filecoinCalibration } from "viem/chains";
+
 const INDEXER = {
   CONFIRMATIONS: 6n,
   MAX_BATCH_BLOCKS: 200n,
@@ -12,5 +14,7 @@ const INDEXER = {
 const config = {
   INDEXER,
 };
+
+export const primaryChain = filecoinCalibration;
 
 export default config;

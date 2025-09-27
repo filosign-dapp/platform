@@ -5,19 +5,17 @@ import {
   type PublicClient,
   type Transport,
 } from "viem";
-import { filecoinCalibration } from "viem/chains";
+import { primaryChain } from "../../config";
 
 export type ProviderLike = PublicClient<
   NonNullable<Transport>,
   NonNullable<Chain>
 >;
 
-const network = filecoinCalibration;
-
 export const getProvider: () => ProviderLike = () =>
   createPublicClient({
-    transport: http(network.rpcUrls.default.http[0]),
-    chain: network,
+    transport: http(primaryChain.rpcUrls.default.http[0]),
+    chain: primaryChain,
   });
 
 export const provider = getProvider();
