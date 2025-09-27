@@ -4,6 +4,7 @@
         "db:migrate": "bunx --bun drizzle-kit push"
     },
     "dependencies": {
+        "@hono/zod-validator": "^0.7.3",
         "@libsql/client": "^0.14.0",
         "drizzle-orm": "^0.44.5",
         "drizzle-zod": "^0.8.3",

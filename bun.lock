@@ -26,6 +26,7 @@
     "packages/server": {
       "name": "server",
       "dependencies": {
+        "@hono/zod-validator": "^0.7.3",
         "@libsql/client": "^0.14.0",
         "drizzle-orm": "^0.44.5",
         "drizzle-zod": "^0.8.3",
@@ -92,6 +93,8 @@
     "@esbuild/win32-x64": ["@esbuild/win32-x64@0.19.12", "", { "os": "win32", "cpu": "x64" }, "sha512-T1QyPSDCyMXaO3pzBkF96E8xMkiRYbUEZADd29SyPGabqxMViNoii+NcK7eWJAEoU6RZyEm5lVSIjTmcdoB9HA=="],
 
     "@filosign/contracts": ["@filosign/contracts@github:filosign-dapp/contracts#977f01b", { "dependencies": { "multiformats": "^13.4.1" }, "peerDependencies": { "viem": "^2.37.5" } }, "filosign-dapp-contracts-977f01b"],
+
+    "@hono/zod-validator": ["@hono/zod-validator@0.7.3", "", { "peerDependencies": { "hono": ">=3.9.0", "zod": "^3.25.0 || ^4.0.0" } }, "sha512-uYGdgVib3RlGD698WR5dVM0zB3UuPY5vHKXffGUbUh7r4xY+mFIhF3/v4AcQVLrU5CQdBso8BJr4wuVoCrjTuQ=="],
 
     "@libsql/client": ["@libsql/client@0.14.0", "", { "dependencies": { "@libsql/core": "^0.14.0", "@libsql/hrana-client": "^0.7.0", "js-base64": "^3.7.5", "libsql": "^0.4.4", "promise-limit": "^2.7.0" } }, "sha512-/9HEKfn6fwXB5aTEEoMeFh4CtG0ZzbncBb1e++OCdVpgKZ/xyMsIVYXm0w7Pv4RUel803vE6LwniB3PqD72R0Q=="],
 
