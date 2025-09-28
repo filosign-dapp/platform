@@ -1,6 +1,7 @@
 import { Hono } from "hono";
 import { startIndexer } from "./lib/indexer/engine";
 import { startJobScheduler } from "./lib/indexer/scheduler";
+import analytics from "./lib/analytics/logger";
 
 startIndexer("FSFileRegistry");
 startIndexer("FSKeyRegistry");
@@ -8,13 +9,11 @@ startIndexer("FSManager");
 const workerId = `${require("os").hostname()}:${process.pid}`;
 startJobScheduler(workerId);
 
-// const app = new Hono();
+const app = new Hono().get("/", (c) => {
+  return c.text("Hello Hono!");
+});
 
-// app.get("/", (c) => {
-//   return c.text("Hello Hono!");
-// });
-
-// const port = 3000;
-// console.log(`Server is running on port ${port}`);
-
-// export default app;
+export default {
+  port: 30011,
+  fetch: app.fetch,
+};

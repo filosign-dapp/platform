@@ -1,47 +1,38 @@
 import { createMiddleware } from "hono/factory";
-import { type Address, isAddress } from "viem";
-import { privy } from "../../lib/privy/client";
-import db from "../../lib/db";
-import {ethereum} from "viem"
-import { eq } from "drizzle-orm";
+import { respond } from "../../lib/utils/respond";
+import { isAddress, isHash, type Hash } from "viem";
 
-const ensureUser = createMiddleware<{
-  Variables: {
-    user: { address: Address };
-  };
-}>(async (ctx, next) => {
-  const idToken = ctx.req.header("Authorization")?.replace(/^Bearer\s+/i, "");
-  if (!idToken) return ctx.text("Unauthorized", 401);
+const consumedSignatures: Record<Hash, boolean> = {};
 
-  const privyUser = await privy.users().get({ id_token: idToken });
+export const authSigned = createMiddleware(async (ctx, next) => {
+  const sig = ctx.req.header("x-auth-signature");
+  const claimedAddr = ctx.req.header("x-auth-address");
+  const tsHeader = ctx.req.header("x-auth-timestamp");
 
-  let { 0: user } = await db
-    .select()
-    .from(db.schema.users)
-    .where(eq(db.schema.users., privyUser.linked_accounts[0].))
-    .limit(1);
-
-  if (!user) {
-    const address = privyUser.wallet?.address;
-
-    if (!address) return ctx.text("Missing embedded wallet", 401);
-    if (!isAddress(address)) {
-      return ctx.text("Invalid EVM wallet retrieved from Privy", 401);
-    }
-
-    const { 0: newUser } = await db
-      .insert(users)
-      .values({
-        address,
-        privyId,
-      })
-      .returning();
-
-    user = newUser;
+  if (!sig || !claimedAddr || !tsHeader) {
+    return respond.err(ctx, "Headers not found", 401);
+  }
+  if (!isHash(sig) || !isAddress(claimedAddr)) {
+    return respond.err(ctx, "Invalid signature or address", 401);
+  }
+  if (consumedSignatures[sig]) {
+    return respond.err(ctx, "Signature already used", 401);
   }
 
-  ctx.set("user", user as DB["user"] & { address: Address });
+  const timestamp = Number(tsHeader);
+  if (isNaN(timestamp) || timestamp <= 0) {
+    return respond.err(ctx, "Invalid timestamp", 401);
+  }
+
+  const now = Date.now();
+  const TEN_SECONDS_MS = 10 * 1000;
+  if (timestamp + TEN_SECONDS_MS < now) {
+    return respond.err(ctx, "Reuest too old", 408);
+  }
+
+  const message = `Filosign\n${claimedAddr}\n${timestamp}\n${}`;
+
+  consumedSignatures[sig] = true;
+
   await next();
 });
-
-export default ensureUser;
