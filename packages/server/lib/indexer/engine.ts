@@ -6,6 +6,7 @@ import { provider } from "./provider";
 import { getContracts } from "@filosign/contracts";
 import { bigIntMax, bigIntMin } from "../utils/math";
 import { type GetLogsReturnType } from "viem";
+import { enqueueJob } from "../jobrunner/scheduler";
 
 const contracts = getContracts(provider);
 const { indexerCheckpoints, pendingJobs } = db.schema;
@@ -161,12 +162,10 @@ export async function startIndexer(contract: keyof typeof contracts) {
       });
 
       for (const log of logs) {
-        db.insert(pendingJobs)
-          .values({
-            type: `EVENT:${contract}:${log.eventName}`,
-            payload: log,
-          })
-          .run();
+        enqueueJob({
+          type: `EVENT:${contract}:${log.eventName}`,
+          payload: log,
+        });
       }
 
       await updateCheckpoint(identifier, to);
