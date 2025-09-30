@@ -6,7 +6,7 @@ import { getAddress, isAddress } from "viem";
 import { enqueueJob } from "../../../lib/jobrunner/scheduler";
 import { and, eq } from "drizzle-orm";
 
-const { shareRequests, pendingJobs } = db.schema;
+const { shareRequests } = db.schema;
 
 export default new Hono()
   .post("/", authSigned, async (ctx) => {
