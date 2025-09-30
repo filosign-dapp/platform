@@ -1,10 +1,20 @@
 import { createMiddleware } from "hono/factory";
 import { respond } from "../../lib/utils/respond";
-import { isAddress, isHash, type Hash } from "viem";
+import {
+  isAddress,
+  isHash,
+  verifyMessage,
+  type Address,
+  type Hash,
+} from "viem";
 
 const consumedSignatures: Record<Hash, boolean> = {};
 
-export const authSigned = createMiddleware(async (ctx, next) => {
+export const authSigned = createMiddleware<{
+  Variables: {
+    userWallet: Address;
+  };
+}>(async (ctx, next) => {
   const sig = ctx.req.header("x-auth-signature");
   const claimedAddr = ctx.req.header("x-auth-address");
   const tsHeader = ctx.req.header("x-auth-timestamp");
@@ -25,14 +35,25 @@ export const authSigned = createMiddleware(async (ctx, next) => {
   }
 
   const now = Date.now();
-  const TEN_SECONDS_MS = 10 * 1000;
-  if (timestamp + TEN_SECONDS_MS < now) {
+  const TTL_MS = 6 * 1000;
+  if (timestamp + TTL_MS < now) {
     return respond.err(ctx, "Reuest too old", 408);
   }
 
-  const message = `Filosign\n${claimedAddr}\n${timestamp}\n${}`;
-
+  const message = `Filosign\n${claimedAddr}\n${timestamp}`;
   consumedSignatures[sig] = true;
+
+  const valid = verifyMessage({
+    message: message,
+    signature: sig,
+    address: claimedAddr,
+  });
+
+  if (!valid) {
+    return respond.err(ctx, "Invalid signature", 401);
+  }
+
+  ctx.set("userWallet", claimedAddr);
 
   await next();
 });
