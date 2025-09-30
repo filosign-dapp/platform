@@ -1,10 +1,18 @@
 import config from "../../config";
 import { eq, lte, sql } from "drizzle-orm";
 import db from "../db";
-import type { TypedWorker } from "../indexer/worker";
+import type { TypedWorker } from "./worker";
 import tryCatchSync, { tryCatch } from "../utils/tryCatch";
 
 const { pendingJobs } = db.schema;
+
+export async function enqueueJob(options: { type: string; payload: any }) {
+  const { type, payload } = options;
+  await db.insert(pendingJobs).values({
+    type,
+    payload,
+  });
+}
 
 const w = new Worker(new URL("./worker.ts", import.meta.url), {
   type: "module",
