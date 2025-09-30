@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import { startIndexer } from "./lib/indexer/engine";
-import { startJobScheduler } from "./lib/indexer/scheduler";
-import analytics from "./lib/analytics/logger";
+import { startJobScheduler } from "./lib/jobrunner/scheduler";
+import { apiRouter } from "./api/routes/router";
 
 startIndexer("FSFileRegistry");
 startIndexer("FSKeyRegistry");
@@ -9,9 +9,7 @@ startIndexer("FSManager");
 const workerId = `${require("os").hostname()}:${process.pid}`;
 startJobScheduler(workerId);
 
-const app = new Hono().get("/", (c) => {
-  return c.text("Hello Hono!");
-});
+const app = new Hono().route("/api", apiRouter);
 
 export default {
   port: 30011,
