@@ -1,7 +1,7 @@
 import config from "../../config";
-import { and, eq, isNull, lte, ne, or, sql } from "drizzle-orm";
+import { eq, lte, sql } from "drizzle-orm";
 import db from "../db";
-import type { TypedWorker } from "./worker";
+import type { TypedWorker } from "../indexer/worker";
 import tryCatchSync, { tryCatch } from "../utils/tryCatch";
 
 const { pendingJobs } = db.schema;

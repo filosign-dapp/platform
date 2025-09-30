@@ -1,8 +1,8 @@
 import { getContracts } from "@filosign/contracts";
 import { createDbClient } from "../db/client";
 import schema from "../db/schema";
-import type { ProviderLogEntry } from "./engine";
-import { getProvider } from "./provider";
+import type { ProviderLogEntry } from "../indexer/engine";
+import { getProvider } from "../indexer/provider";
 import {
   concatHex,
   serializeCompactSignature,
@@ -63,7 +63,7 @@ async function processJob(job: Job, dbC: ReturnType<typeof createDbClient>) {
       // @ts-ignore This is th best we can do for now
       const log: ProviderLogEntry = job.payload;
 
-      const jobTypeParts = job.type.split("_");
+      const jobTypeParts = job.type.split(":");
 
       if (jobTypeParts[0] === "EVENT") {
         const contractName = jobTypeParts[1];
