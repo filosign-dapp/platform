@@ -7,6 +7,8 @@ import {
   type Address,
   type Hash,
 } from "viem";
+import db from "../../lib/db";
+import { eq } from "drizzle-orm";
 
 const consumedSignatures: Record<Hash, boolean> = {};
 
@@ -43,11 +45,32 @@ export const authSigned = createMiddleware<{
   const message = `Filosign\n${claimedAddr}\n${timestamp}`;
   consumedSignatures[sig] = true;
 
+  const user = db
+    .select()
+    .from(db.schema.users)
+    .where(eq(db.schema.users.walletAddress, claimedAddr))
+    .get();
+
+  if (!user || !user.authAddress) {
+    return respond.err(
+      ctx,
+      "User not found or authAddress not claimed yet",
+      401
+    );
+  }
+
   const valid = verifyMessage({
     message: message,
     signature: sig,
-    address: claimedAddr,
+    address: user.authAddress,
   });
+  if (user.walletAddress !== claimedAddr) {
+    return respond.err(
+      ctx,
+      "Stop trying to login to someone else account",
+      401
+    );
+  }
 
   if (!valid) {
     return respond.err(ctx, "Invalid signature", 401);
