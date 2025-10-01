@@ -7,6 +7,7 @@ export const users = t.sqliteTable("users", {
   lastActiveAt: t.integer().notNull(),
   keygenDataJson: tJsonString(),
   encryptionPublicKey: tBytes32(),
+  authAddress: tEvmAddress(),
 
   ...timestamps,
 });
