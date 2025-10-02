@@ -5,6 +5,7 @@ const envKeys = [
   "S3_ACCESS_KEY_ID",
   "S3_BUCKET",
   "S3_ENDPOINT",
+  "EVM_PRIVATE_KEY_SYNAPSE",
 ] as const;
 
 type ENV = Record<(typeof envKeys)[number], string>;

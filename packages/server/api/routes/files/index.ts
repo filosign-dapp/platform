@@ -23,37 +23,17 @@ export default new Hono()
       acl: "public-read",
     });
 
-    return c.json({ uploadUrl: presignedUrl, key, expiresIn: 15 * 60 });
+    return ctx.json({ uploadUrl: presignedUrl, key });
   })
   .post("/", authSigned, async (ctx) => {
-    const bytes = await ctx.req.arrayBuffer();
+    const { pieceCid } = await ctx.req.json();
 
-    if (!recipientWallet || !isAddress(recipientWallet)) {
-      return respond.err(ctx, "Invalid recipientWallet", 400);
+    const fileExists = bucket.exists(`uploads/${pieceCid}`);
+    if (!fileExists) {
+      return respond.err(ctx, "File not found on storage", 400);
     }
 
-    const recipient = getAddress(recipientWallet);
-    if (recipient === wallet) {
-      return respond.err(ctx, "Don't ask yoursefl for permission", 400);
-    }
-
-    const newRequest = db
-      .insert(shareRequests)
-      .values({
-        senderWallet: wallet,
-        recipientWallet: recipient,
-        message: message.toString().slice(0, 500),
-        metadata: metadata,
-      })
-      .returning()
-      .get();
-
-    void enqueueJob({
-      type: "NOTIFY:request:created",
-      payload: {
-        requestId: newRequest.id,
-      },
-    });
+    const file = await bucket.file(`uploads/${pieceCid}`).arrayBuffer();
 
     return respond.ok(ctx, newRequest, "Share request created", 201);
   })
