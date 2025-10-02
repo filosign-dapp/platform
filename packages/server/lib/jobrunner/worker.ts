@@ -162,6 +162,7 @@ async function processJob(job: Job, dbC: ReturnType<typeof createDbClient>) {
             db.update(schema.files)
               .set({
                 onchainTxHash: log.transactionHash,
+                recipientWallet: log.args.recipient,
               })
               .where(eq(schema.files.pieceCid, cid))
               .run();
