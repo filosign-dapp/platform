@@ -1,6 +1,10 @@
 const envKeys = [
   "TG_ANALYTICS_BOT_GROUP_ID",
   "TG_ANALYTICS_BOT_TOKEN",
+  "S3_SECRET_ACCESS_KEY",
+  "S3_ACCESS_KEY_ID",
+  "S3_BUCKET",
+  "S3_ENDPOINT",
 ] as const;
 
 type ENV = Record<(typeof envKeys)[number], string>;
