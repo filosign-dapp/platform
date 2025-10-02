@@ -44,6 +44,11 @@ export default new Hono()
 
     const bytes = await file.arrayBuffer();
 
+    if (bytes.byteLength === 0) {
+      file.delete();
+      return respond.err(ctx, "Uploaded file is empty", 400);
+    }
+
     const ds = await getOrCreateUserDataset(ctx.var.userWallet);
 
     const preflight = await ds.preflightUpload(file.size);
