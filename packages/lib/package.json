@@ -1,5 +1,15 @@
 {
-    "name": "filosign-sdk",
+    "name": "@filosign/sdk",
+    "exports": {
+        ".": {
+            "types": "./dist/exports.d.ts",
+            "require": "./dist/exports.js",
+            "import": "./dist/exports.js"
+        }
+    },
+    "scripts": {
+        "build": "tsc -p tsconfig.build.json"
+    },
     "dependencies": {
         "filosign-crypto-utils": "^0.2.12",
         "hono": "^4.9.8",
