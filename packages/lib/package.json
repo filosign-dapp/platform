@@ -18,7 +18,8 @@
     ],
     "scripts": {
         "build": "rm -rf dist; tsc -p tsconfig.build.json",
-        "prepare": "bun run build"
+        "prepare": "bun run build",
+        "pack": "python3 ./pack.py"
     },
     "dependencies": {
         "@filosign/contracts": "https://github.com/filosign-dapp/contracts.git#977f01b",
