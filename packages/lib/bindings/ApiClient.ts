@@ -9,9 +9,9 @@ export default class ApiClient {
   private _baseUrl: string;
 
   constructor(baseUrl: string) {
-    this._client = this.createClient();
     this._baseUrl = baseUrl;
     this._authHeader = { Authorization: "Bearer null" };
+    this._client = this.createClient();
   }
 
   private createClient() {
