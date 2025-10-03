@@ -14,6 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       PACKAGE_DIR: packages/lib
+      TGZ_NAME: filosign-sdk.tgz
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -45,9 +46,7 @@ jobs:
       - name: Did package.json change in this push?
         id: changed
         run: |
-          # Try to see if package.json changed in this push (best-effort)
-          # Compare HEAD with its parent (works for normal pushes)
-          changed_files=$(git diff --name-only HEAD~1..HEAD || git diff --name-only HEAD^..HEAD || true)
+          changed_files=$(git diff --name-only HEAD~1..HEAD || true)
           echo "changed_files=$changed_files"
           if echo "$changed_files" | grep -q "^$PACKAGE_DIR/package.json$"; then
             echo "package_json_changed=true" >> $GITHUB_OUTPUT
@@ -79,18 +78,18 @@ jobs:
           cd $PACKAGE_DIR
           bun i
           bun run build
-          npm pack
+          pkg_tgz=$(npm pack)
           mkdir -p $GITHUB_WORKSPACE/artifacts
-          mv *.tgz $GITHUB_WORKSPACE/artifacts/
+          # rename to fixed name
+          mv "$pkg_tgz" "$GITHUB_WORKSPACE/artifacts/${TGZ_NAME}"
 
       - name: Create tag and push
         id: create_tag
         run: |
           TAG="v${{ steps.read_version.outputs.version }}"
-          echo "TAG=${TAG}" >> $GITHUB_ENV   # persist for later steps
+          echo "TAG=${TAG}" >> $GITHUB_ENV
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          # create annotated tag if it doesn't exist
           if git rev-parse "$TAG" >/dev/null 2>&1; then
             echo "Tag $TAG already exists. Skipping tag creation."
           else
@@ -101,8 +100,8 @@ jobs:
       - name: Create GitHub Release and upload artifact
         uses: softprops/action-gh-release@v1
         with:
-          tag_name: ${{ env.TAG }} # explicitly tell the action which tag to use
-          files: artifacts/*.tgz
+          tag_name: ${{ env.TAG }}
+          files: artifacts/filosign-sdk.tgz
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
