@@ -29,8 +29,6 @@ import {
 import { signRegisterChallenge } from "../utils/signature";
 import { privateKeyToAccount } from "viem/accounts";
 
-type Wallet = WalletClient<Transport, Chain, Account>;
-
 const info = `Replace with relevant shit`; // temporary, todo replace
 const primaryChain = filecoinCalibration;
 
