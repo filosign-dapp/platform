@@ -258,6 +258,34 @@ async function processJob(job: Job, dbC: ReturnType<typeof createDbClient>) {
               .run();
           }
         }
+
+        if (contractName === "FSKeyRegistry") {
+          if (log.eventName === "KeygenDataRegistered") {
+            const keyData = await contracts.FSKeyRegistry.read.keygenData([
+              log.args.user,
+            ]);
+            const publicKey = await contracts.FSKeyRegistry.read.publicKeys([
+              log.args.user,
+            ]);
+
+            db.insert(schema.users).values({
+              walletAddress: log.args.user,
+              encryptionPublicKey: publicKey,
+              lastActiveAt: Date.now(),
+
+              keygenDataJson: {
+                salt_auth: keyData[0],
+                salt_wrap: keyData[1],
+                salt_pin: keyData[2],
+                nonce: keyData[3],
+                seed_head: keyData[4],
+                seed_word: keyData[5],
+                seed_tail: keyData[6],
+                commitment_pin: keyData[7],
+              },
+            });
+          }
+        }
       }
     });
   } finally {

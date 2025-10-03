@@ -12,9 +12,7 @@ export const users = t.sqliteTable("users", {
   email: t.text(),
   lastActiveAt: t.integer().notNull(),
   keygenDataJson: tJsonString(),
-  encryptionPublicKey: tBytes32(),
-  authAddress: tEvmAddress(),
-
+  encryptionPublicKey: tBytes32().notNull(),
   ...timestamps,
 });
 
