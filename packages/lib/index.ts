@@ -50,15 +50,16 @@ export class FilosignClient {
       transport: wallet.transport as unknown as Transport,
       chain: wallet.chain,
     });
-    this.logger = new Logger("FilosignClient", config.debug);
     this.apiClient = new ApiClient(apiBaseUrl);
     this.crypto = new Crypto();
 
+    this.logger = new Logger("FilosignClient", config.debug);
     this.defaults = {
       apiClient: this.apiClient,
       contracts: this.contracts,
       publicClient: this.publicClient,
       logger: this.logger,
+      crypto: this.crypto,
     };
   }
 
