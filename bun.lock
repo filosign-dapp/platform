@@ -17,12 +17,12 @@
     },
     "packages/lib": {
       "name": "@filosign/sdk",
-      "version": "0.1.9",
+      "version": "0.1.0",
       "dependencies": {
-        "@filosign/contracts": "https://github.com/filosign-dapp/contracts.git#977f01b",
+        "@filosign/contracts": "https://github.com/filosign-dapp/contracts.git#aebc06c",
         "@tanstack/react-query": "^5.90.2",
         "axios": "^1.12.2",
-        "filosign-crypto-utils": "^0.2.14",
+        "filosign-crypto-utils": "^0.2.15",
         "hono": "^4.9.8",
         "zod": "^4.1.11",
       },
@@ -101,7 +101,7 @@
 
     "@esbuild/win32-x64": ["@esbuild/win32-x64@0.19.12", "", { "os": "win32", "cpu": "x64" }, "sha512-T1QyPSDCyMXaO3pzBkF96E8xMkiRYbUEZADd29SyPGabqxMViNoii+NcK7eWJAEoU6RZyEm5lVSIjTmcdoB9HA=="],
 
-    "@filosign/contracts": ["@filosign/contracts@github:filosign-dapp/contracts#977f01b", { "dependencies": { "multiformats": "^13.4.1" }, "peerDependencies": { "viem": "^2.37.5" } }, "filosign-dapp-contracts-977f01b"],
+    "@filosign/contracts": ["@filosign/contracts@github:filosign-dapp/contracts#aebc06c", { "dependencies": { "multiformats": "^13.4.1" }, "peerDependencies": { "viem": "^2.37.5" } }, "filosign-dapp-contracts-aebc06c"],
 
     "@filosign/sdk": ["@filosign/sdk@workspace:packages/lib"],
 
@@ -233,7 +233,7 @@
 
     "fetch-blob": ["fetch-blob@3.2.0", "", { "dependencies": { "node-domexception": "^1.0.0", "web-streams-polyfill": "^3.0.3" } }, "sha512-7yAQpD2UMJzLi1Dqv7qFYnPbaPx7ZfFK6PiIxQ4PfkGPyNyl2Ugx+a/umUonmKqjhM4DnfbMvdX6otXq83soQQ=="],
 
-    "filosign-crypto-utils": ["filosign-crypto-utils@0.2.14", "", {}, "sha512-YUUBDKyRJg5a4l0KBSAGu26KOi54WN/qnzfzO0mrHiiRAgOfh+JHjGM/+aFEEw+j4TMn+cz12fBbuewFCZK+eA=="],
+    "filosign-crypto-utils": ["filosign-crypto-utils@0.2.15", "", {}, "sha512-/KTJUojFiKKy3m+ULSGTEFZBGT9pMhT1sLGLPbBb+4qB41aCSJsMiThOexr4sY8amPYux7Ui8Jp8+jabzs4uAQ=="],
 
     "follow-redirects": ["follow-redirects@1.15.11", "", {}, "sha512-deG2P0JfjrTxl50XGCDyfI97ZGVCxIpfKYmfyrQ54n5FO/0gfIES8C/Psl6kWVDolizcaaxZJnTS0QSMxvnsBQ=="],
 
@@ -354,6 +354,8 @@
     "ethers/ws": ["ws@8.17.1", "", { "peerDependencies": { "bufferutil": "^4.0.1", "utf-8-validate": ">=5.0.2" }, "optionalPeers": ["bufferutil", "utf-8-validate"] }, "sha512-6XQFvXTkbfUOZOKKILFG1PDK2NDQs4azKQl26T0YS5CxqWLgXajbPZ+h4gZekJyRqFU8pvnbAbbs/3TgRPy+GQ=="],
 
     "ox/@adraffy/ens-normalize": ["@adraffy/ens-normalize@1.11.1", "", {}, "sha512-nhCBV3quEgesuf7c7KYfperqSS14T8bYuvJ8PcLJp6znkZpFc0AuW4qBtr8eKVyPPe/8RSr7sglCWPU5eaxwKQ=="],
+
+    "server/@filosign/contracts": ["@filosign/contracts@github:filosign-dapp/contracts#977f01b", { "dependencies": { "multiformats": "^13.4.1" }, "peerDependencies": { "viem": "^2.37.5" } }, "filosign-dapp-contracts-977f01b"],
 
     "@esbuild-kit/core-utils/esbuild/@esbuild/android-arm": ["@esbuild/android-arm@0.18.20", "", { "os": "android", "cpu": "arm" }, "sha512-fyi7TDI/ijKKNZTUJAQqiG5T7YjJXgnzkURqmGj13C6dCqckZBLdl4h7bkhHt/t0WP+zO9/zwroDvANaOqO5Sw=="],
 

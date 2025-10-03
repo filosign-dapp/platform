@@ -22,7 +22,11 @@ const FilosignContext = createContext<FilosignContext>({
 
 type FilosignConfig = {
   children: ReactNode;
-  config: FilosignClientConfig;
+  config: {
+    wallet?: FilosignClientConfig["wallet"];
+    apiBaseUrl: FilosignClientConfig["apiBaseUrl"];
+    debug?: FilosignClientConfig["debug"];
+  };
 };
 
 export function FilosignProvider(props: FilosignConfig) {
@@ -32,24 +36,25 @@ export function FilosignProvider(props: FilosignConfig) {
 
   const flag = useRef(false);
 
-  function init() {
-    const fsClient = new FilosignClient(config);
-    fsClient.initialize().then(() => setReady(true));
-
-    setClient(fsClient);
-  }
-
   const value: FilosignContext = {
     client,
     ready,
   };
 
   useEffect(() => {
-    if (!flag.current) {
+    if (!flag.current && config.wallet) {
       flag.current = true;
-      init();
+
+      const fsClient = new FilosignClient({
+        apiBaseUrl: config.apiBaseUrl,
+        wallet: config.wallet,
+        debug: config.debug,
+      });
+      fsClient.initialize().then(() => setReady(true));
+
+      setClient(fsClient);
     }
-  }, [config]);
+  }, [config, config.wallet]);
 
   return createElement(FilosignContext.Provider, { value }, children);
 }
