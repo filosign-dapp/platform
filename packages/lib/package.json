@@ -12,6 +12,7 @@
         "prepare": "bun run build"
     },
     "dependencies": {
+        "@tanstack/react-query": "^5.90.2",
         "filosign-crypto-utils": "^0.2.12",
         "hono": "^4.9.8",
         "zod": "^4.1.11"
