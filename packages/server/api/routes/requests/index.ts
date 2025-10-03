@@ -1,15 +1,16 @@
 import { Hono } from "hono";
 import { respond } from "../../../lib/utils/respond";
 import db from "../../../lib/db";
-import { authSigned } from "../../middleware/auth";
+import { authenticated } from "../../middleware/auth";
 import { getAddress, isAddress } from "viem";
 import { enqueueJob } from "../../../lib/jobrunner/scheduler";
 import { and, eq } from "drizzle-orm";
 
 const { shareRequests } = db.schema;
 
+
 export default new Hono()
-  .post("/", authSigned, async (ctx) => {
+  .post("/", authenticated, async (ctx) => {
     const wallet = ctx.var.userWallet;
 
     const { recipientWallet, message, metadata } = await ctx.req.json();
@@ -20,7 +21,7 @@ export default new Hono()
 
     const recipient = getAddress(recipientWallet);
     if (recipient === wallet) {
-      return respond.err(ctx, "Don't ask yoursefl for permission", 400);
+      return respond.err(ctx, "Don't ask yourself for permission", 400);
     }
 
     const newRequest = db
@@ -43,7 +44,7 @@ export default new Hono()
 
     return respond.ok(ctx, newRequest, "Share request created", 201);
   })
-  .get("/pending", authSigned, async (ctx) => {
+  .get("/pending", authenticated, async (ctx) => {
     const rows = db
       .select()
       .from(shareRequests)
@@ -58,7 +59,7 @@ export default new Hono()
 
     return respond.ok(ctx, { requests: rows }, "Pending requests fetched", 200);
   })
-  .delete("/:id/cancel", authSigned, async (ctx) => {
+  .delete("/:id/cancel", authenticated, async (ctx) => {
     const { id } = ctx.req.param();
     if (!id) return respond.err(ctx, "Missing id parameter", 400);
 
