@@ -1,6 +1,6 @@
 {
     "name": "@filosign/sdk",
-    "version": "0.1.5",
+    "version": "0.1.6",
     "main": "dist/exports.js",
     "exports": {
         ".": {
@@ -25,6 +25,7 @@
         "@tanstack/react-query": "^5.90.2",
         "filosign-crypto-utils": "^0.2.12",
         "hono": "^4.9.8",
-        "zod": "^4.1.11"
+        "zod": "^4.1.11",
+        "axios": "^1.12.2"
     }
 }
