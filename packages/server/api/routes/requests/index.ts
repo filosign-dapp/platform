@@ -6,7 +6,7 @@ import { getAddress, isAddress } from "viem";
 import { enqueueJob } from "../../../lib/jobrunner/scheduler";
 import { and, eq } from "drizzle-orm";
 
-const { shareRequests } = db.schema;
+const { shareRequests, shareApprovals, users, profiles } = db.schema;
 
 
 export default new Hono()
@@ -44,20 +44,71 @@ export default new Hono()
 
     return respond.ok(ctx, newRequest, "Share request created", 201);
   })
-  .get("/pending", authenticated, async (ctx) => {
+  .get("/received", authenticated, async (ctx) => {
     const rows = db
       .select()
       .from(shareRequests)
-      .where(
-        and(
-          eq(shareRequests.recipientWallet, ctx.var.userWallet),
-          eq(shareRequests.status, "PENDING")
-        )
-      )
+      .where(eq(shareRequests.recipientWallet, ctx.var.userWallet))
       .orderBy(shareRequests.createdAt)
       .all();
 
-    return respond.ok(ctx, { requests: rows }, "Pending requests fetched", 200);
+    return respond.ok(ctx, { requests: rows }, "Received requests fetched", 200);
+  })
+  .get("/sent", authenticated, async (ctx) => {
+    const rows = db
+      .select()
+      .from(shareRequests)
+      .where(eq(shareRequests.senderWallet, ctx.var.userWallet))
+      .orderBy(shareRequests.createdAt)
+      .all();
+
+    return respond.ok(ctx, { requests: rows }, "Sent requests fetched", 200);
+  })
+  .get("/can-send-to", authenticated, async (ctx) => {
+    const rows = db
+      .select({
+        walletAddress: shareApprovals.recipientWallet,
+        username: profiles.username,
+        displayName: profiles.displayName,
+        avatarUrl: profiles.avatarUrl,
+        active: shareApprovals.active,
+        createdAt: shareApprovals.createdAt,
+      })
+      .from(shareApprovals)
+      .leftJoin(profiles, eq(shareApprovals.recipientWallet, profiles.walletAddress))
+      .where(
+        and(
+          eq(shareApprovals.senderWallet, ctx.var.userWallet),
+          eq(shareApprovals.active, true)
+        )
+      )
+      .orderBy(shareApprovals.createdAt)
+      .all();
+
+    return respond.ok(ctx, { people: rows }, "People you can send requests to", 200);
+  })
+  .get("/can-receive-from", authenticated, async (ctx) => {
+    const rows = db
+      .select({
+        walletAddress: shareApprovals.senderWallet,
+        username: profiles.username,
+        displayName: profiles.displayName,
+        avatarUrl: profiles.avatarUrl,
+        active: shareApprovals.active,
+        createdAt: shareApprovals.createdAt,
+      })
+      .from(shareApprovals)
+      .leftJoin(profiles, eq(shareApprovals.senderWallet, profiles.walletAddress))
+      .where(
+        and(
+          eq(shareApprovals.recipientWallet, ctx.var.userWallet),
+          eq(shareApprovals.active, true)
+        )
+      )
+      .orderBy(shareApprovals.createdAt)
+      .all();
+
+    return respond.ok(ctx, { people: rows }, "People who can send you requests", 200);
   })
   .delete("/:id/cancel", authenticated, async (ctx) => {
     const { id } = ctx.req.param();
@@ -94,4 +145,4 @@ export default new Hono()
     });
 
     return respond.ok(ctx, { canceled: id }, `Request ${id} canceled`, 200);
-  });
+  })
