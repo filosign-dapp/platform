@@ -1,6 +1,6 @@
 import { TOKENS, CONTRACT_ADDRESSES } from "@filoz/synapse-sdk";
 import { ethers } from "ethers";
-import { synapse } from "./lib/synapse";
+import { synapse } from "../lib/synapse";
 
 const amount = ethers.parseUnits("5", 18); // USDFC
 await synapse.payments.deposit(amount);

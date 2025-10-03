@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import { respond } from "../../../lib/utils/respond";
 import db from "../../../lib/db";
-import { authSigned } from "../../middleware/auth";
+import { authenticated } from "../../middleware/auth";
 import { bucket } from "../../../lib/s3/client";
 import { getOrCreateUserDataset } from "../../../lib/synapse";
 
@@ -9,7 +9,7 @@ const { files } = db.schema;
 const MAX_FILE_SIZE = 30 * 1024 * 1024;
 
 export default new Hono()
-  .post("/upload/start", authSigned, async (ctx) => {
+  .post("/upload/start", authenticated, async (ctx) => {
     const { pieceCid } = await ctx.req.json();
 
     const userWallet = ctx.var.userWallet;
@@ -25,7 +25,7 @@ export default new Hono()
     return ctx.json({ uploadUrl: presignedUrl, key });
   })
 
-  .post("/", authSigned, async (ctx) => {
+  .post("/", authenticated, async (ctx) => {
     const { pieceCid } = await ctx.req.json();
     if (!pieceCid || typeof pieceCid !== "string") {
       return respond.err(ctx, "Invalid pieceCid", 400);

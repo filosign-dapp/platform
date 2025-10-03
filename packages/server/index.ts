@@ -9,7 +9,7 @@ startIndexer("FSManager");
 const workerId = `${require("os").hostname()}:${process.pid}`;
 startJobScheduler(workerId);
 
-const app = new Hono().route("/api", apiRouter);
+export const app = new Hono().route("/api", apiRouter);
 
 export default {
   port: 30011,
