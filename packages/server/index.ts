@@ -3,6 +3,11 @@ import { startIndexer } from "./lib/indexer/engine";
 import { startJobScheduler } from "./lib/jobrunner/scheduler";
 import { apiRouter } from "./api/routes/router";
 
+//@ts-ignore
+BigInt.prototype.toJSON = function () {
+  return this.toString();
+};
+
 startIndexer("FSFileRegistry");
 startIndexer("FSKeyRegistry");
 startIndexer("FSManager");
