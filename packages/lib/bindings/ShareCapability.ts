@@ -53,4 +53,14 @@ export default class Posts {
     );
     return response;
   }
+
+  async cancelShareRequest(requestId: string) {
+    const { apiClient } = this.defaults;
+    apiClient.ensureJwt();
+    const response = await apiClient.rpc.postSafe(
+      { canceled: z.string() },
+      `/api/requests/${requestId}/cancel`
+    );
+    return response;
+  }
 }
