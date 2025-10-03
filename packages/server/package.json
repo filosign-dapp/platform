@@ -7,11 +7,7 @@
         "@filoz/synapse-sdk": "^0.28.0",
         "@hono/zod-validator": "^0.7.3",
         "@libsql/client": "^0.14.0",
-<<<<<<< HEAD
-        "@types/jsonwebtoken": "^9.0.10",
-=======
         "axios": "^1.12.2",
->>>>>>> 883b3b6 (change some package settings and clients)
         "drizzle-orm": "^0.44.5",
         "drizzle-zod": "^0.8.3",
         "ethers": "^6.15.0",
@@ -19,6 +15,7 @@
         "jsonwebtoken": "^9.0.2"
     },
     "devDependencies": {
+        "@types/jsonwebtoken": "^9.0.10",
         "drizzle-kit": "^0.30.5"
     }
 }
