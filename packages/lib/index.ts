@@ -21,6 +21,7 @@ import {
   getPublicKeyFromRegenerated,
   regenerateEncryptionKey,
   toB64,
+  ensureWasmInitialized,
 } from "filosign-crypto-utils";
 import { signRegisterChallenge } from "./utils/signature";
 import type { Defaults, FilosignClientConfig, Wallet } from "./types/client";
@@ -70,11 +71,14 @@ export class FilosignClient {
   }
 
   async initialize() {
-    this.version = await this.contracts.FSManager.read.version();
+    const promises = [
+      this.contracts.FSManager.read.version(),
+      ensureWasmInitialized(),
+      await this.wallet.switchChain({ id: primaryChain.id }),
+    ] as const;
 
-    if (primaryChain.id !== this.wallet.chain.id) {
-      await this.wallet.switchChain({ id: primaryChain.id });
-    }
+    const [version] = await Promise.all(promises);
+    this.version = version;
   }
 
   get address() {

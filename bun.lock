@@ -22,7 +22,7 @@
         "@filosign/contracts": "https://github.com/filosign-dapp/contracts.git#aebc06c",
         "@tanstack/react-query": "^5.90.2",
         "axios": "^1.12.2",
-        "filosign-crypto-utils": "^0.2.15",
+        "filosign-crypto-utils": "^0.2.19",
         "hono": "^4.9.8",
         "zod": "^4.1.11",
       },
@@ -233,7 +233,7 @@
 
     "fetch-blob": ["fetch-blob@3.2.0", "", { "dependencies": { "node-domexception": "^1.0.0", "web-streams-polyfill": "^3.0.3" } }, "sha512-7yAQpD2UMJzLi1Dqv7qFYnPbaPx7ZfFK6PiIxQ4PfkGPyNyl2Ugx+a/umUonmKqjhM4DnfbMvdX6otXq83soQQ=="],
 
-    "filosign-crypto-utils": ["filosign-crypto-utils@0.2.15", "", {}, "sha512-/KTJUojFiKKy3m+ULSGTEFZBGT9pMhT1sLGLPbBb+4qB41aCSJsMiThOexr4sY8amPYux7Ui8Jp8+jabzs4uAQ=="],
+    "filosign-crypto-utils": ["filosign-crypto-utils@0.2.19", "", {}, "sha512-/DRGoDO0D8F/Z7Ucusj66Rt7HJGO+2tcdWoCoZq5v0p9/eGEhdLIXAYUsNaNw+FFgr0TxVpMvnWVfFbp5P/4ng=="],
 
     "follow-redirects": ["follow-redirects@1.15.11", "", {}, "sha512-deG2P0JfjrTxl50XGCDyfI97ZGVCxIpfKYmfyrQ54n5FO/0gfIES8C/Psl6kWVDolizcaaxZJnTS0QSMxvnsBQ=="],
 
