@@ -29,7 +29,7 @@ export default new Hono()
       .values({
         senderWallet: wallet,
         recipientWallet: recipient,
-        message: message.toString().slice(0, 500),
+        message: message.toString().slice(0, 255),
         metadata: metadata,
       })
       .returning()
