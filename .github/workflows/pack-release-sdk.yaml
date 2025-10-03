@@ -1,0 +1,26 @@
+name: Build & Pack the SDK
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+jobs:
+  build-pack:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Bun
+        uses: oven-sh/bun@v3
+      - name: Install & Build
+        run: |
+          cd packages/lib
+          bun i
+          bun run build
+          npm pack
+      - name: Upload artifact
+        uses: softprops/action-gh-release@v1
+        with:
+          files: packages/lib/filosign-*.tgz
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

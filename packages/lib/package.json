@@ -1,14 +1,15 @@
 {
     "name": "@filosign/sdk",
-    "exports": {
-        ".": {
-            "types": "./dist/exports.d.ts",
-            "require": "./dist/exports.js",
-            "import": "./dist/exports.js"
-        }
-    },
+    "version": "0.1.0",
+    "main": "dist/exports.js",
+    "exports": "./dist/exports.js",
+    "types": "dist/exports.d.ts",
+    "files": [
+        "dist"
+    ],
     "scripts": {
-        "build": "tsc -p tsconfig.build.json"
+        "build": "rm -rf dist; tsc -p tsconfig.build.json",
+        "prepare": "bun run build"
     },
     "dependencies": {
         "filosign-crypto-utils": "^0.2.12",
