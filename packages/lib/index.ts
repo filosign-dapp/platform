@@ -9,6 +9,7 @@ import {
   type Hash,
   type PublicClient,
   type Transport,
+  http,
 } from "viem";
 import { filecoinCalibration } from "viem/chains";
 import { getContracts } from "@filosign/contracts";
@@ -48,7 +49,7 @@ export class FilosignClient {
     this.wallet = wallet;
     this.contracts = getContracts(wallet);
     this.publicClient = createPublicClient({
-      transport: wallet.transport as unknown as Transport,
+      transport: http(this.wallet.chain.rpcUrls.default.http[0]),
       chain: wallet.chain,
     });
     this.apiClient = new ApiClient(apiBaseUrl);
