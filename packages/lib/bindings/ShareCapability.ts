@@ -3,7 +3,7 @@ import type { Defaults } from "../types/client";
 import type Logger from "./Logger";
 import z from "zod";
 
-export default class Posts {
+export default class ShareCapability {
   private defaults: Defaults;
   private logger: Logger;
 

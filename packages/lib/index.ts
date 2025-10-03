@@ -26,6 +26,7 @@ import type { Defaults, FilosignClientConfig, Wallet } from "./types/client";
 import Logger from "./bindings/Logger";
 import ApiClient from "./bindings/ApiClient";
 import { Crypto } from "./bindings/Crypto";
+import type ShareCapability from "./bindings/ShareCapability";
 
 const info = `Replace with relevant shit`; // temporary, todo replace
 const primaryChain = filecoinCalibration;
@@ -38,7 +39,8 @@ export class FilosignClient {
   private defaults: Defaults;
   private logger: Logger;
   private apiClient: ApiClient;
-  version = 1;
+
+  public version = 1;
 
   constructor(config: FilosignClientConfig) {
     const { wallet, apiBaseUrl } = config;
@@ -76,6 +78,10 @@ export class FilosignClient {
 
   get address() {
     return this.wallet.account.address;
+  }
+
+  get shareCapability() {
+    return new ShareCapability(this.defaults);
   }
 
   async isRegistered() {
