@@ -13,7 +13,6 @@ import {
 import { filecoinCalibration } from "viem/chains";
 import { getContracts } from "@filosign/contracts";
 import {
-  createSharedKey,
   deriveEncryptionMaterial,
   generateNonce,
   generateRegisterChallenge,

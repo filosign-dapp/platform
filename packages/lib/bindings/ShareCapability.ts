@@ -63,4 +63,13 @@ export default class Posts {
     );
     return response;
   }
+
+  async allowSharing(senderWallet: Address) {
+    const { contracts, tx } = this.defaults;
+
+    const receipt = await tx(
+      contracts.FSManager.write.approveSender([senderWallet])
+    );
+    return receipt;
+  }
 }
