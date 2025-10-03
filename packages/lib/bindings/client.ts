@@ -82,6 +82,43 @@ export class FilosignClient {
     );
   }
 
+  private async setupEncryptionAndAuthKeys(
+    signature: { flat: string },
+    pin: string,
+    saltPin: string,
+    saltAuth: string,
+    saltWrap: string,
+    seed: string
+  ) {
+    const { encryptionKey } = regenerateEncryptionKey(
+      signature.flat,
+      pin,
+      saltPin,
+      saltAuth,
+      saltWrap,
+      seed,
+      info
+    );
+
+    const { encryptionKey: authKey } = regenerateEncryptionKey(
+      signature.flat,
+      pin,
+      saltPin,
+      saltAuth,
+      saltWrap,
+      seed,
+      "Auth Key"
+    );
+
+    this.authKeyClient = createWalletClient({
+      transport: this.wallet.transport as unknown as Transport,
+      chain: this.wallet.chain,
+      account: privateKeyToAccount(`0x${toHex(authKey)}`),
+    });
+
+    this.encryptionKey = Uint8Array.from(encryptionKey);
+  }
+
   async isRegistered() {
     return await this.contracts.FSKeyRegistry.read.isRegistered([this.address]);
   }
@@ -144,33 +181,14 @@ export class FilosignClient {
       ])
     );
 
-    const { encryptionKey } = regenerateEncryptionKey(
-      signature.flat,
+    await this.setupEncryptionAndAuthKeys(
+      signature,
       pin,
       salts.pinSalt,
       salts.authSalt,
       salts.wrapperSalt,
-      encSeed,
-      info
+      encSeed
     );
-
-    const { encryptionKey: authKey } = regenerateEncryptionKey(
-      signature.flat,
-      pin,
-      salts.pinSalt,
-      salts.authSalt,
-      salts.wrapperSalt,
-      encSeed,
-      "Auth Key"
-    );
-
-    this.authKeyClient = createWalletClient({
-      transport: this.wallet.transport as unknown as Transport,
-      chain: this.wallet.chain,
-      account: privateKeyToAccount(`0x${toHex(authKey)}`),
-    });
-
-    this.encryptionKey = Uint8Array.from(encryptionKey);
   }
 
   async login(pin: string) {
@@ -218,33 +236,14 @@ export class FilosignClient {
       challenge,
     });
 
-    const { encryptionKey } = regenerateEncryptionKey(
-      regenerated_signature.flat,
+    await this.setupEncryptionAndAuthKeys(
+      regenerated_signature,
       pin,
       stored.salt_pin,
       stored.salt_auth,
       stored.salt_wrap,
-      stored.seed,
-      info
+      stored.seed
     );
-
-    const { encryptionKey: authKey } = regenerateEncryptionKey(
-      regenerated_signature.flat,
-      pin,
-      stored.salt_pin,
-      stored.salt_auth,
-      stored.salt_wrap,
-      stored.seed,
-      "Auth Key"
-    );
-
-    this.authKeyClient = createWalletClient({
-      transport: this.wallet.transport as unknown as Transport,
-      chain: this.wallet.chain,
-      account: privateKeyToAccount(`0x${toHex(authKey)}`),
-    });
-
-    this.encryptionKey = Uint8Array.from(encryptionKey);
   }
 
   async encrypt(data: Uint8Array, recipient: Address) {
