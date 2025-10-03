@@ -54,21 +54,21 @@ export default class ShareCapability {
     return response;
   }
 
-  async cancelShareRequest(requestId: string) {
+  async cancelShareRequest(options: { requestId: string }) {
     const { apiClient } = this.defaults;
     apiClient.ensureJwt();
     const response = await apiClient.rpc.postSafe(
       { canceled: z.string() },
-      `/requests/${requestId}/cancel`
+      `/requests/${options.requestId}/cancel`
     );
     return response;
   }
 
-  async allowSharing(senderWallet: Address) {
+  async allowSharing(options: { senderWallet: Address }) {
     const { contracts, tx } = this.defaults;
 
     const receipt = await tx(
-      contracts.FSManager.write.approveSender([senderWallet])
+      contracts.FSManager.write.approveSender([options.senderWallet])
     );
     return receipt;
   }

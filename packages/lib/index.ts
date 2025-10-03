@@ -88,7 +88,9 @@ export class FilosignClient {
     return await this.contracts.FSKeyRegistry.read.isRegistered([this.address]);
   }
 
-  async register(pin: string) {
+  async register(options: { pin: string }) {
+    const { pin } = options;
+
     if (await this.isRegistered()) {
       throw new Error("Address is already registered");
     }
@@ -159,7 +161,9 @@ export class FilosignClient {
     this.crypto.encryptionKey = Uint8Array.fromBase64(encryptionKey);
   }
 
-  async login(pin: string) {
+  async login(options: { pin: string }) {
+    const { pin } = options;
+
     if (!(await this.isRegistered())) {
       throw new Error("Address is not registered");
     }
