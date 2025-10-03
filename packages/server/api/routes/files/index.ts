@@ -4,8 +4,9 @@ import db from "../../../lib/db";
 import { authenticated } from "../../middleware/auth";
 import { bucket } from "../../../lib/s3/client";
 import { getOrCreateUserDataset } from "../../../lib/synapse";
+import { and, desc, eq, isNotNull } from "drizzle-orm";
 
-const { files } = db.schema;
+const { files, fileSignatures, profiles } = db.schema;
 const MAX_FILE_SIZE = 30 * 1024 * 1024;
 
 export default new Hono()
@@ -84,5 +85,167 @@ export default new Hono()
       inserResult,
       "File uploaded to filecoin warmstorage",
       201
+    );
+  })
+
+  .get("/sent", authenticated, async (ctx) => {
+    const wallet = ctx.get("userWallet");
+    const page = parseInt(ctx.req.query("page") || "1");
+    const limit = Math.min(parseInt(ctx.req.query("limit") || "20"), 100);
+    const offset = (page - 1) * limit;
+
+    const sentFiles = db
+      .select({
+        pieceCid: files.pieceCid,
+        recipientWallet: files.recipientWallet,
+        metadata: files.metadata,
+        acknowledged: files.acknowledged,
+        onchainTxHash: files.onchainTxHash,
+        acknowledgedTxHash: files.acknowledgedTxHash,
+        createdAt: files.createdAt,
+        updatedAt: files.updatedAt,
+        recipientProfile: {
+          username: profiles.username,
+          displayName: profiles.displayName,
+          avatarUrl: profiles.avatarUrl,
+        },
+      })
+      .from(files)
+      .leftJoin(profiles, eq(files.recipientWallet, profiles.walletAddress))
+      .where(
+        and(
+          eq(files.ownerWallet, wallet),
+          isNotNull(files.recipientWallet),
+          isNotNull(files.onchainTxHash)
+        )
+      )
+      .orderBy(desc(files.createdAt))
+      .limit(limit)
+      .offset(offset)
+      .all();
+
+    const filesWithSignatures = await Promise.all(
+      sentFiles.map(async (file) => {
+        const signatures = db
+          .select({
+            id: fileSignatures.id,
+            signerWallet: fileSignatures.signerWallet,
+            signatureVisualHash: fileSignatures.signatureVisualHash,
+            timestamp: fileSignatures.timestamp,
+            compactSignature: fileSignatures.compactSignature,
+            onchainTxHash: fileSignatures.onchainTxHash,
+            createdAt: fileSignatures.createdAt,
+            signerProfile: {
+              username: profiles.username,
+              displayName: profiles.displayName,
+              avatarUrl: profiles.avatarUrl,
+            },
+          })
+          .from(fileSignatures)
+          .leftJoin(
+            profiles,
+            eq(fileSignatures.signerWallet, profiles.walletAddress)
+          )
+          .where(eq(fileSignatures.filePieceCid, file.pieceCid))
+          .orderBy(desc(fileSignatures.timestamp))
+          .all();
+
+        return {
+          ...file,
+          signatures,
+        };
+      })
+    );
+
+    return respond.ok(
+      ctx,
+      {
+        files: filesWithSignatures,
+        pagination: {
+          page,
+          limit,
+          hasMore: sentFiles.length === limit,
+        },
+      },
+      "Sent files retrieved successfully",
+      200
+    );
+  })
+
+  .get("/received", authenticated, async (ctx) => {
+    const wallet = ctx.get("userWallet");
+    const page = parseInt(ctx.req.query("page") || "1");
+    const limit = Math.min(parseInt(ctx.req.query("limit") || "20"), 100);
+    const offset = (page - 1) * limit;
+
+    const receivedFiles = db
+      .select({
+        pieceCid: files.pieceCid,
+        ownerWallet: files.ownerWallet,
+        metadata: files.metadata,
+        acknowledged: files.acknowledged,
+        onchainTxHash: files.onchainTxHash,
+        acknowledgedTxHash: files.acknowledgedTxHash,
+        createdAt: files.createdAt,
+        updatedAt: files.updatedAt,
+        senderProfile: {
+          username: profiles.username,
+          displayName: profiles.displayName,
+          avatarUrl: profiles.avatarUrl,
+        },
+      })
+      .from(files)
+      .leftJoin(profiles, eq(files.ownerWallet, profiles.walletAddress))
+      .where(eq(files.recipientWallet, wallet))
+      .orderBy(desc(files.createdAt))
+      .limit(limit)
+      .offset(offset)
+      .all();
+
+    const filesWithSignatures = await Promise.all(
+      receivedFiles.map(async (file) => {
+        const signatures = db
+          .select({
+            id: fileSignatures.id,
+            signerWallet: fileSignatures.signerWallet,
+            signatureVisualHash: fileSignatures.signatureVisualHash,
+            timestamp: fileSignatures.timestamp,
+            compactSignature: fileSignatures.compactSignature,
+            onchainTxHash: fileSignatures.onchainTxHash,
+            createdAt: fileSignatures.createdAt,
+            signerProfile: {
+              username: profiles.username,
+              displayName: profiles.displayName,
+              avatarUrl: profiles.avatarUrl,
+            },
+          })
+          .from(fileSignatures)
+          .leftJoin(
+            profiles,
+            eq(fileSignatures.signerWallet, profiles.walletAddress)
+          )
+          .where(eq(fileSignatures.filePieceCid, file.pieceCid))
+          .orderBy(desc(fileSignatures.timestamp))
+          .all();
+
+        return {
+          ...file,
+          signatures,
+        };
+      })
+    );
+
+    return respond.ok(
+      ctx,
+      {
+        files: filesWithSignatures,
+        pagination: {
+          page,
+          limit,
+          hasMore: receivedFiles.length === limit,
+        },
+      },
+      "Received files retrieved successfully",
+      200
     );
   });
