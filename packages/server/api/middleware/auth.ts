@@ -1,6 +1,6 @@
 import { createMiddleware } from "hono/factory";
 import { respond } from "../../lib/utils/respond";
-import { verifyJwt } from "../../../lib/utils/jwt";
+import { verifyJwt } from "../../lib/utils/jwt";
 import { type Address } from "viem";
 
 export const authenticated = createMiddleware<{
@@ -21,7 +21,7 @@ export const authenticated = createMiddleware<{
   if (!payload || !payload.sub) {
     return respond.err(ctx, "Invalid or expired token", 401);
   }
-  
+
   ctx.set("userWallet", payload.sub);
   await next();
 });

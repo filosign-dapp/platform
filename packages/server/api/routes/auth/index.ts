@@ -1,8 +1,5 @@
 import { Hono } from "hono";
-import {
-  isAddress,
-  type Address,
-} from "viem";
+import { isAddress, type Address } from "viem";
 import { respond } from "../../../lib/utils/respond";
 import {
   createSiweMessage,
@@ -12,7 +9,7 @@ import {
 import { primaryChain } from "../../../config";
 import { DOMAIN, URI } from "../../../constants";
 import { provider } from "../../../lib/indexer/provider";
-import { issueJwtToken } from "../../../../lib/utils/jwt";
+import { issueJwtToken } from "../../../lib/utils/jwt";
 
 const messages: Record<Address, { message: string; validTill: number }> = {};
 
@@ -74,7 +71,7 @@ export default new Hono()
 
     const token = issueJwtToken(wallet);
     return respond.ok(ctx, { valid, token }, "Signature verified", 200);
-  })
+  });
 
 //   .get("/claim/nonce", async (ctx) => {
 //     const wallet = ctx.req.query("wallet_address");
