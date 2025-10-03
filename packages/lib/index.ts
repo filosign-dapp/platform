@@ -26,7 +26,7 @@ import type { Defaults, FilosignClientConfig, Wallet } from "./types/client";
 import Logger from "./bindings/Logger";
 import ApiClient from "./bindings/ApiClient";
 import { Crypto } from "./bindings/Crypto";
-import type ShareCapability from "./bindings/ShareCapability";
+import ShareCapability from "./bindings/ShareCapability";
 
 const info = `Replace with relevant shit`; // temporary, todo replace
 const primaryChain = filecoinCalibration;
