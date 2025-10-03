@@ -1,6 +1,4 @@
-import { hc } from "hono/client";
-import Logger from "./Logger";
-import axios, { Axios, type AxiosInstance } from "axios";
+import axios, { type AxiosInstance } from "axios";
 import { z, type ZodRawShape, type ZodType } from "zod";
 
 export default class ApiClient {
