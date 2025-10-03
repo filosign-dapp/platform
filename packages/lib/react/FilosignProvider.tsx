@@ -1,4 +1,12 @@
-import { createContext, useContext, useEffect, useRef, useState } from "react";
+import {
+  createContext,
+  createElement,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 import { FilosignClient } from "..";
 import type { FilosignClientConfig } from "../types/client";
 
@@ -13,7 +21,7 @@ const FilosignContext = createContext<FilosignContext>({
 });
 
 type FilosignConfig = {
-  children: React.ReactNode;
+  children: ReactNode;
   config: FilosignClientConfig;
 };
 
@@ -43,11 +51,7 @@ export function BeaverProvider(props: FilosignConfig) {
     }
   }, [config]);
 
-  return (
-    <FilosignContext.Provider value={value}>
-      {children}
-    </FilosignContext.Provider>
-  );
+  return createElement(FilosignContext.Provider, { value }, children);
 }
 
 export function useFilosignContext() {
