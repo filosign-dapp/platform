@@ -78,9 +78,10 @@ jobs:
           cd $PACKAGE_DIR
           bun i
           bun run build
-          pkg_tgz=$(npm pack)
+          set -o pipefail
+          pkg_tgz=$(npm pack --silent | awk 'NF{last=$0} END{print last}')
+          echo "pkg_tgz=$pkg_tgz"
           mkdir -p $GITHUB_WORKSPACE/artifacts
-          # rename to fixed name
           mv "$pkg_tgz" "$GITHUB_WORKSPACE/artifacts/${TGZ_NAME}"
 
       - name: Create tag and push
