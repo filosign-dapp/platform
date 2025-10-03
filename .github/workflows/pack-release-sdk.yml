@@ -21,7 +21,9 @@ jobs:
           fetch-depth: 0
 
       - name: Setup Bun
-        uses: oven-sh/bun@v3
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
 
       - name: Get current package version
         id: read_version
