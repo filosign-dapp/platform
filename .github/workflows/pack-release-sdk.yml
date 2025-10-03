@@ -77,7 +77,6 @@ jobs:
         run: |
           cd $PACKAGE_DIR
           bun i
-          bun run build
           set -o pipefail
           pkg_tgz=$(npm pack --silent | awk 'NF{last=$0} END{print last}')
           echo "pkg_tgz=$pkg_tgz"
