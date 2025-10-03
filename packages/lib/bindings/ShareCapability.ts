@@ -23,7 +23,7 @@ export default class ShareCapability {
     apiClient.ensureJwt();
     const response = await apiClient.rpc.postSafe(
       { id: z.string() },
-      "/api/requests",
+      "/requests",
       {
         recipientWallet: options.recipientWallet,
         message: options.message,
@@ -49,7 +49,7 @@ export default class ShareCapability {
           })
         ),
       },
-      "/api/requests/pending"
+      "/requests/pending"
     );
     return response;
   }
@@ -59,7 +59,7 @@ export default class ShareCapability {
     apiClient.ensureJwt();
     const response = await apiClient.rpc.postSafe(
       { canceled: z.string() },
-      `/api/requests/${requestId}/cancel`
+      `/requests/${requestId}/cancel`
     );
     return response;
   }
