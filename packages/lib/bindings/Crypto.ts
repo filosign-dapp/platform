@@ -1,5 +1,4 @@
 import { createSharedKey } from "filosign-crypto-utils";
-import type { Address } from "viem";
 
 export class Crypto {
   private _encryptionKey: Uint8Array | null = null;
@@ -25,15 +24,17 @@ export class Crypto {
   }
 
   async encrypt(data: Uint8Array, recipientPubKeyB64: string) {
-    if (!this.encryptionKey) {
+    if (!this._encryptionKey) {
       throw new Error("Client is not logged in - encryption key is missing");
     }
 
     const { sharedKey } = createSharedKey(
-      this.encryptionKey.toBase64(),
+      this._encryptionKey.toBase64(),
       recipientPubKeyB64
     );
-    const cryptoKey = await this.deriveRawAesKey(Uint8Array.from(sharedKey));
+    const cryptoKey = await this.deriveRawAesKey(
+      Uint8Array.fromBase64(sharedKey)
+    );
 
     const iv = crypto.getRandomValues(new Uint8Array(12));
     const encrypted = await crypto.subtle.encrypt(
@@ -53,15 +54,17 @@ export class Crypto {
     iv: Uint8Array,
     senderPubKeyB64: string
   ) {
-    if (!this.encryptionKey) {
+    if (!this._encryptionKey) {
       throw new Error("Client is not logged in - encryption key is missing");
     }
 
     const { sharedKey } = createSharedKey(
-      this.encryptionKey.toBase64(),
+      this._encryptionKey.toBase64(),
       senderPubKeyB64
     );
-    const cryptoKey = await this.deriveRawAesKey(Uint8Array.from(sharedKey));
+    const cryptoKey = await this.deriveRawAesKey(
+      Uint8Array.fromBase64(sharedKey)
+    );
 
     return await crypto.subtle.decrypt(
       {

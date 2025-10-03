@@ -144,7 +144,7 @@ export class FilosignClient {
       info
     );
 
-    this.crypto.encryptionKey = Uint8Array.from(encryptionKey);
+    this.crypto.encryptionKey = Uint8Array.fromBase64(encryptionKey);
   }
 
   async login(pin: string) {
@@ -202,6 +202,6 @@ export class FilosignClient {
       info
     );
 
-    this.crypto.encryptionKey = Uint8Array.from(encryptionKey);
+    this.crypto.encryptionKey = Uint8Array.fromBase64(encryptionKey);
   }
 }
