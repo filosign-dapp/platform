@@ -1,6 +1,6 @@
 {
     "name": "@filosign/sdk",
-    "version": "0.1.0",
+    "version": "0.1.1",
     "main": "dist/exports.js",
     "exports": "./dist/exports.js",
     "types": "dist/exports.d.ts",
