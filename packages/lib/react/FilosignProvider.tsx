@@ -25,7 +25,7 @@ type FilosignConfig = {
   config: FilosignClientConfig;
 };
 
-export function BeaverProvider(props: FilosignConfig) {
+export function FilosignProvider(props: FilosignConfig) {
   const { children, config } = props;
   const [client, setClient] = useState<FilosignClient>({} as any);
   const [ready, setReady] = useState<boolean>(false);
