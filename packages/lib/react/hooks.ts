@@ -102,3 +102,8 @@ export function useFilosignMutation<
     },
   });
 }
+
+export function useFilosignClient() {
+  const { client } = useFilosignContext();
+  return client;
+}
