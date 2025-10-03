@@ -12,11 +12,13 @@ import type { FilosignClientConfig } from "../types/client";
 
 type FilosignContext = {
   client: FilosignClient;
+  initialize: () => Promise<void>;
   ready: boolean;
 };
 
 const FilosignContext = createContext<FilosignContext>({
   client: {} as any,
+  initialize: async () => {},
   ready: false,
 });
 
@@ -30,9 +32,7 @@ export function FilosignProvider(props: FilosignConfig) {
   const [client, setClient] = useState<FilosignClient>({} as any);
   const [ready, setReady] = useState<boolean>(false);
 
-  const flag = useRef(false);
-
-  function init() {
+  async function initialize() {
     const fsClient = new FilosignClient(config);
     fsClient.initialize().then(() => setReady(true));
 
@@ -42,14 +42,8 @@ export function FilosignProvider(props: FilosignConfig) {
   const value: FilosignContext = {
     client,
     ready,
+    initialize,
   };
-
-  useEffect(() => {
-    if (!flag.current) {
-      flag.current = true;
-      init();
-    }
-  }, [config]);
 
   return createElement(FilosignContext.Provider, { value }, children);
 }
