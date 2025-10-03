@@ -25,7 +25,7 @@ export type Defaults = {
   contracts: ReturnType<typeof getContracts<Wallet>>;
   publicClient: PublicClient;
   crypto: Crypto;
-  // tx: (txnPromise: Promise<`0x${string}`>) => Promise<TransactionReceipt>;
+  tx: (txnPromise: Promise<`0x${string}`>) => Promise<TransactionReceipt>;
 
   //   store: FilosignStore;
   //   events: EventNotifier;

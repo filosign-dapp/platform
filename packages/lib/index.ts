@@ -60,6 +60,10 @@ export class FilosignClient {
       publicClient: this.publicClient,
       logger: this.logger,
       crypto: this.crypto,
+      tx: async (txnPromise: Promise<Hash>) => {
+        const hash = await txnPromise;
+        return await this.publicClient.waitForTransactionReceipt({ hash });
+      },
     };
   }
 
@@ -121,19 +125,21 @@ export class FilosignClient {
 
     const encSeedHex = `0x${toHex(encSeed)}` as const;
 
-    await this.contracts.FSKeyRegistry.write.registerKeygenData([
-      {
-        nonce: `0x${toHex(nonce)}`,
-        salt_pin: `0x${toHex(salts.pinSalt)}`,
-        salt_auth: `0x${toHex(salts.authSalt)}`,
-        salt_wrap: `0x${toHex(salts.wrapperSalt)}`,
-        seed_head: sliceHex(encSeedHex, 0, 20),
-        seed_word: sliceHex(encSeedHex, 20, 52),
-        seed_tail: sliceHex(encSeedHex, 52, 72),
-        commitment_pin: pinCommitment,
-      },
-      `0x${toHex(publicKey)}`,
-    ]);
+    await this.defaults.tx(
+      this.contracts.FSKeyRegistry.write.registerKeygenData([
+        {
+          nonce: `0x${toHex(nonce)}`,
+          salt_pin: `0x${toHex(salts.pinSalt)}`,
+          salt_auth: `0x${toHex(salts.authSalt)}`,
+          salt_wrap: `0x${toHex(salts.wrapperSalt)}`,
+          seed_head: sliceHex(encSeedHex, 0, 20),
+          seed_word: sliceHex(encSeedHex, 20, 52),
+          seed_tail: sliceHex(encSeedHex, 52, 72),
+          commitment_pin: pinCommitment,
+        },
+        `0x${toHex(publicKey)}`,
+      ])
+    );
 
     const { encryptionKey } = regenerateEncryptionKey(
       signature.flat,
